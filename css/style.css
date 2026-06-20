@@ -58,52 +58,22 @@ a:focus-visible {
   position: fixed;
   inset: 0;
   z-index: 999;
-  background: var(--bg-0);
+  background: #000000;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  transition: opacity 0.6s ease, visibility 0.6s ease;
+  transition: opacity 0.6s ease;
 }
 #splash.fade-out {
   opacity: 0;
-  visibility: hidden;
   pointer-events: none;
 }
 
-.splash-logo {
-  font-family: var(--font-display);
-  font-weight: 800;
-  font-size: 13vw;
-  max-font-size: 52px;
-  letter-spacing: 0.12em;
-  background: var(--grad);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  animation: glow-pulse 1.6s ease-in-out infinite;
-}
-
-@media (min-width: 420px) {
-  .splash-logo { font-size: 52px; }
-}
-
-.splash-tag {
-  font-family: var(--font-body);
-  font-weight: 600;
-  font-size: 12px;
-  letter-spacing: 0.3em;
-  color: var(--text-1);
-}
-
-@keyframes glow-pulse {
-  0%, 100% { filter: drop-shadow(0 0 6px rgba(57,255,20,0.35)) drop-shadow(0 0 14px rgba(0,255,255,0.18)); opacity: 1; }
-  50% { filter: drop-shadow(0 0 16px rgba(57,255,20,0.65)) drop-shadow(0 0 28px rgba(0,255,255,0.4)); opacity: 0.92; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .splash-logo { animation: none; }
+.splash-logo-img {
+  width: 80%;
+  max-width: 250px;
+  height: auto;
+  display: block;
 }
 
 /* ═══════════ APP WRAPPER (mobile-first) ═══════════ */
@@ -649,4 +619,5 @@ a:focus-visible {
     border-left: 1px solid var(--border-soft);
     border-right: 1px solid var(--border-soft);
   }
-}
+     }
+               
