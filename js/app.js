@@ -16,8 +16,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
 /* ───────────────────────────────
    SPLASH SCREEN
-   Shows for 2s, then fades out and
-   reveals the app shell.
+   Shows for exactly 3 seconds, then
+   fades out (opacity 1 → 0) and reveals
+   the main dashboard underneath.
 ─────────────────────────────── */
 function initSplashScreen() {
   const splash = document.getElementById('splash');
@@ -26,12 +27,13 @@ function initSplashScreen() {
   window.setTimeout(() => {
     splash.classList.add('fade-out');
     app.classList.add('ready');
-  }, 2000);
 
-  // Safety: if something stalls, never trap the user behind the splash
-  window.setTimeout(() => {
-    splash.style.display = 'none';
-  }, 3200);
+    // Remove splash from layout once the fade transition finishes
+    // (transition duration is set in CSS: 0.6s)
+    window.setTimeout(() => {
+      splash.style.display = 'none';
+    }, 600);
+  }, 3000);
 }
 
 /* ───────────────────────────────
