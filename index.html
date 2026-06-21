@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Playta — Play. Compete. Win.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;800&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- ══════════ SPLASH SCREEN ══════════ -->
+<div id="splash">
+  <img src="images/playta-logo.png" alt="Playta — Play. Compete. Win." class="splash-logo-img">
+</div>
+
+<!-- ══════════ APP SHELL ══════════ -->
+<div id="app" class="wrapper">
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="header-left">
+      <div class="avatar">G</div>
+      <div class="greet">
+        <span class="greet-hi">Hello,</span>
+        <span class="greet-name">Gamer!</span>
+      </div>
+    </div>
+    <div class="header-right">
+      <button class="wallet-pill" id="walletBtn" aria-label="Wallet balance">
+        <div class="wallet-pill-main">
+          <svg class="ic" viewBox="0 0 24 24" fill="none"><path d="M3 7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v1H5a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V10a2 2 0 0 0-2-2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="16.5" cy="14.5" r="1.4" fill="currentColor"/></svg>
+          <span id="walletBalance">₹0</span>
+        </div>
+        <div class="wallet-pill-divider"></div>
+        <div class="wallet-pill-bonus">
+          <span class="bonus-tag">Bonus</span>
+          <span id="walletBonus">₹10</span>
+        </div>
+        <span class="wallet-add" id="walletAddBtn" aria-label="Add money">+</span>
+      </button>
+      <button class="icon-btn" id="bellBtn" aria-label="Notifications">
+        <svg class="ic" viewBox="0 0 24 24" fill="none"><path d="M12 3a5 5 0 0 0-5 5v3.2c0 .5-.18.99-.5 1.38L5 14.5c-.6.7-.1 1.8.8 1.8h12.4c.9 0 1.4-1.1.8-1.8l-1.5-2c-.32-.4-.5-.88-.5-1.38V8a5 5 0 0 0-5-5Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M9.5 18.5a2.5 2.5 0 0 0 5 0" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        <span class="dot-badge"></span>
+      </button>
+    </div>
+  </header>
+
+  <main class="scroll-area">
+
+    <!-- ═══════════ HOME ═══════════ -->
+    <section class="page-section active" id="home-section">
+
+      <!-- FEATURED TOURNAMENT CAROUSEL
+           Auto-slides every few seconds + swipeable by hand.
+           To add/replace a banner: add another <div class="hero-slide">
+           inside #heroTrack, swap its background-image, and add a
+           matching <span class="hero-dot"> in #heroDots.
+      -->
+      <section class="hero-carousel" id="heroCarousel">
+        <div class="hero-track" id="heroTrack">
+          <div class="hero-slide" id="heroBanner" style="background-image:url('images/banner.jpg');"></div>
+          <div class="hero-slide" style="background-image:url('images/banner2.jpg');"></div>
+          <div class="hero-slide" style="background-image:url('images/banner3.jpg');"></div>
+        </div>
+        <div class="hero-dots" id="heroDots">
+          <span class="hero-dot active"></span>
+          <span class="hero-dot"></span>
+          <span class="hero-dot"></span>
+        </div>
+      </section>
+
+      <!-- GAME SELECTION GRID -->
+      <section class="game-grid-section" aria-label="Game categories">
+        <div class="game-grid">
+          <button class="game-tile active" data-game="freefire">
+            <img src="images/ff-icon.png" alt="Free Fire Max" class="game-tile-icon">
+            <span class="game-tile-name">Free Fire Max</span>
+          </button>
+
+          <button class="game-tile" data-game="bgmi">
+            <span class="soon-ribbon">SOON</span>
+            <img src="images/bgmi-icon.png" alt="BGMI" class="game-tile-icon">
+            <span class="game-tile-name">BGMI</span>
+          </button>
+
+          <button class="game-tile" data-game="codm">
+            <span class="soon-ribbon">SOON</span>
+            <img src="images/cod-icon.png" alt="COD Mobile" class="game-tile-icon">
+            <span class="game-tile-name">COD Mobile</span>
+          </button>
+
+          <button class="game-tile" data-game="valorant">
+            <span class="soon-ribbon">SOON</span>
+            <img src="images/val-icon.png" alt="Valorant" class="game-tile-icon">
+            <span class="game-tile-name">Valorant</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- TOURNAMENT LIST (preview on home) -->
+      <section class="tournaments" aria-label="Tournaments">
+        <div class="section-head">
+          <h2>Live Tournaments</h2>
+          <span class="section-sub">Free Fire Max</span>
+        </div>
+
+        <div class="t-list" id="tournamentList">
+          <!-- Card 1 -->
+          <article class="t-card">
+            <div class="t-card-top">
+              <div class="t-game-icon">🔥</div>
+              <div class="t-card-info">
+                <div class="t-name">Squad Showdown</div>
+                <div class="t-time">Today, 7:00 PM</div>
+              </div>
+              <div class="t-mode">Squad</div>
+            </div>
+            <div class="t-stats">
+              <div class="t-stat">
+                <span class="t-stat-label">Prize Pool</span>
+                <span class="t-stat-value prize">₹12,000</span>
+              </div>
+              <div class="t-stat">
+                <span class="t-stat-label">Entry Fee</span>
+                <span class="t-stat-value">₹20</span>
+              </div>
+            </div>
+            <div class="t-progress-wrap">
+              <div class="t-progress-labels">
+                <span>38/48 squads joined</span>
+                <span class="t-spots">10 spots left</span>
+              </div>
+              <div class="t-progress-track"><div class="t-progress-fill" style="width:79%"></div></div>
+            </div>
+            <button class="t-join-btn">Join Match</button>
+          </article>
+
+          <!-- Card 2 -->
+          <article class="t-card">
+            <div class="t-card-top">
+              <div class="t-game-icon">🔥</div>
+              <div class="t-card-info">
+                <div class="t-name">Solo Sniper Cup</div>
+                <div class="t-time">Tomorrow, 6:30 PM</div>
+              </div>
+              <div class="t-mode">Solo</div>
+            </div>
+            <div class="t-stats">
+              <div class="t-stat">
+                <span class="t-stat-label">Prize Pool</span>
+                <span class="t-stat-value prize">₹5,000</span>
+              </div>
+              <div class="t-stat">
+                <span class="t-stat-label">Entry Fee</span>
+                <span class="t-stat-value">Free</span>
+              </div>
+            </div>
+            <div class="t-progress-wrap">
+              <div class="t-progress-labels">
+                <span>89/100 players joined</span>
+                <span class="t-spots">11 spots left</span>
+              </div>
+              <div class="t-progress-track"><div class="t-progress-fill" style="width:89%"></div></div>
+            </div>
+            <button class="t-join-btn">Join Match</button>
+          </article>
+
+          <!-- Card 3 -->
+          <article class="t-card">
+            <div class="t-card-top">
+              <div class="t-game-icon">🔥</div>
+              <div class="t-card-info">
+                <div class="t-name">Weekly Championship</div>
+                <div class="t-time">Sunday, 3:00 PM</div>
+              </div>
+              <div class="t-mode">Squad</div>
+            </div>
+            <div class="t-stats">
+              <div class="t-stat">
+                <span class="t-stat-label">Prize Pool</span>
+                <span class="t-stat-value prize">₹5,000</span>
+              </div>
+              <div class="t-stat">
+                <span class="t-stat-label">Entry Fee</span>
+                <span class="t-stat-value">Free</span>
+              </div>
+            </div>
+            <div class="t-progress-wrap">
+              <div class="t-progress-labels">
+                <span>8/12 squads joined</span>
+                <span class="t-spots">4 spots left</span>
+              </div>
+              <div class="t-progress-track"><div class="t-progress-fill" style="width:66%"></div></div>
+            </div>
+            <button class="t-join-btn">Join Match</button>
+          </article>
+        </div>
+      </section>
+
+    </section>
+
+    <!-- ═══════════ MATCHES ═══════════ -->
+    <section class="page-section" id="matches-section">
+      <div class="section-head" style="padding-top:18px;">
+        <h2>All Matches</h2>
+        <span class="section-sub">Free Fire Max</span>
+      </div>
+
+      <div class="t-list" style="padding:0 18px;">
+        <article class="t-card">
+          <div class="t-card-top">
+            <div class="t-game-icon">🔥</div>
+            <div class="t-card-info">
+              <div class="t-name">Squad Showdown</div>
+              <div class="t-time">Today, 7:00 PM</div>
+            </div>
+            <div class="t-mode">Squad</div>
+          </div>
+          <div class="t-stats">
+            <div class="t-stat">
+              <span class="t-stat-label">Prize Pool</span>
+              <span class="t-stat-value prize">₹12,000</span>
+            </div>
+            <div class="t-stat">
+              <span class="t-stat-label">Entry Fee</span>
+              <span class="t-stat-value">₹20</span>
+            </div>
+          </div>
+          <div class="t-progress-wrap">
+            <div class="t-progress-labels">
+              <span>38/48 squads joined</span>
+              <span class="t-spots">10 spots left</span>
+            </div>
+            <div class="t-progress-track"><div class="t-progress-fill" style="width:79%"></div></div>
+          </div>
+          <button class="t-join-btn">Join Match</button>
+        </article>
+      </div>
+    </section>
+
+    <!-- ═══════════ LEADERBOARD ═══════════ -->
+    <section class="page-section" id="leaderboard-section">
+      <div class="section-head" style="padding-top:18px;">
+        <h2>Top Players</h2>
+        <span class="section-sub">This Week</span>
+      </div>
+
+      <div class="lb-list" style="padding:0 18px;">
+        <div class="lb-row">
+          <div class="lb-rank gold">1</div>
+          <div class="lb-info">
+            <div class="lb-name">xX_HeadShot_Xx</div>
+            <div class="lb-sub">847 kills</div>
+          </div>
+          <div class="lb-pts">9,240 pts</div>
+        </div>
+        <div class="lb-row">
+          <div class="lb-rank silver">2</div>
+          <div class="lb-info">
+            <div class="lb-name">GarenaKing_07</div>
+            <div class="lb-sub">791 kills</div>
+          </div>
+          <div class="lb-pts">8,890 pts</div>
+        </div>
+        <div class="lb-row">
+          <div class="lb-rank bronze">3</div>
+          <div class="lb-info">
+            <div class="lb-name">ProSniper_FF</div>
+            <div class="lb-sub">745 kills</div>
+          </div>
+          <div class="lb-pts">8,110 pts</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════ WALLET ═══════════ -->
+    <section class="page-section" id="wallet-section">
+      <div class="section-head" style="padding-top:18px;">
+        <h2>My Wallet</h2>
+        <span class="section-sub">Balance</span>
+      </div>
+
+      <div class="wallet-wrap">
+
+        <!-- Premium balance card -->
+        <div class="wallet-card">
+          <div class="wallet-total-label">Total Balance</div>
+          <div class="wallet-total-value">₹0</div>
+
+          <div class="wallet-split">
+            <div class="wallet-split-item">
+              <span class="wallet-split-label">Winning Balance</span>
+              <span class="wallet-split-value">₹0</span>
+            </div>
+            <div class="wallet-split-divider"></div>
+            <div class="wallet-split-item">
+              <span class="wallet-split-label">Bonus</span>
+              <span class="wallet-split-value bonus">₹10</span>
+            </div>
+          </div>
+
+          <div class="wallet-actions">
+            <button class="wallet-action-btn primary" id="addMoneyBtn">Add Money</button>
+            <button class="wallet-action-btn secondary" id="withdrawBtn">Withdraw</button>
+          </div>
+        </div>
+
+        <!-- Recent transactions -->
+        <div class="section-head" style="margin-top:22px;">
+          <h2 style="font-size:14px;">Recent Transactions</h2>
+        </div>
+
+        <div class="txn-list">
+          <div class="txn-row">
+            <div class="txn-icon debit">−</div>
+            <div class="txn-info">
+              <span class="txn-title">Entry Fee Paid</span>
+              <span class="txn-time">Squad Showdown · Today, 6:45 PM</span>
+            </div>
+            <span class="txn-amount debit">−₹20</span>
+          </div>
+          <div class="txn-row">
+            <div class="txn-icon credit">+</div>
+            <div class="txn-info">
+              <span class="txn-title">Prize Won</span>
+              <span class="txn-time">Solo Sniper Cup · Yesterday</span>
+            </div>
+            <span class="txn-amount credit">+₹500</span>
+          </div>
+          <div class="txn-row">
+            <div class="txn-icon credit">+</div>
+            <div class="txn-info">
+              <span class="txn-title">Added Money</span>
+              <span class="txn-time">via UPI · 2 days ago</span>
+            </div>
+            <span class="txn-amount credit">+₹200</span>
+          </div>
+          <div class="txn-row">
+            <div class="txn-icon debit">−</div>
+            <div class="txn-info">
+              <span class="txn-title">Entry Fee Paid</span>
+              <span class="txn-time">Weekly Championship · 3 days ago</span>
+            </div>
+            <span class="txn-amount debit">−₹0</span>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ═══════════ PROFILE ═══════════ -->
+    <section class="page-section" id="profile-section">
+      <div class="section-head" style="padding-top:18px;">
+        <h2>My Profile</h2>
+        <span class="section-sub">Account</span>
+      </div>
+
+      <div class="profile-wrap">
+
+        <!-- Profile header -->
+        <div class="profile-header">
+          <div class="profile-avatar">G</div>
+          <div class="profile-header-info">
+            <span class="profile-username">Guest Player</span>
+            <span class="profile-email">guest@playta.app</span>
+          </div>
+        </div>
+
+        <!-- Free Fire Max UID form -->
+        <div class="profile-card">
+          <div class="profile-card-title">Free Fire Max ID</div>
+
+          <label class="profile-label" for="ffUidInput">UID</label>
+          <input type="text" id="ffUidInput" class="profile-input" placeholder="Enter your Free Fire Max UID">
+
+          <label class="profile-label" for="ffNameInput">In-Game Name</label>
+          <input type="text" id="ffNameInput" class="profile-input" placeholder="Enter your in-game name">
+
+          <button class="profile-save-btn" id="profileSaveBtn">Save</button>
+        </div>
+
+        <!-- Stats summary -->
+        <div class="profile-card">
+          <div class="profile-card-title">My Stats</div>
+          <div class="profile-stats-grid">
+            <div class="profile-stat">
+              <span class="profile-stat-value">0</span>
+              <span class="profile-stat-label">Tournaments Played</span>
+            </div>
+            <div class="profile-stat">
+              <span class="profile-stat-value">0</span>
+              <span class="profile-stat-label">Total Kills</span>
+            </div>
+            <div class="profile-stat">
+              <span class="profile-stat-value">₹0</span>
+              <span class="profile-stat-label">Total Earnings</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- BOTTOM NAVIGATION -->
+  <nav class="bottom-nav" aria-label="Main navigation">
+    <button class="nav-btn active" data-page="home">
+      <svg class="ic" viewBox="0 0 24 24" fill="none"><path d="M4 11.5 12 4l8 7.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 10v9a1 1 0 0 0 1 1h3v-6h4v6h3a1 1 0 0 0 1-1v-9" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span>Home</span>
+    </button>
+    <button class="nav-btn" data-page="matches">
+      <svg class="ic" viewBox="0 0 24 24" fill="none"><path d="M4 5h16M4 12h16M4 19h10" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+      <span>Matches</span>
+    </button>
+    <button class="nav-btn" data-page="leaderboard">
+      <svg class="ic" viewBox="0 0 24 24" fill="none"><path d="M7 4h10v5a5 5 0 0 1-10 0V4Z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M7 5H4.5A1.5 1.5 0 0 0 3 6.5 3.5 3.5 0 0 0 6.5 10H7M17 5h2.5A1.5 1.5 0 0 1 21 6.5 3.5 3.5 0 0 1 17.5 10H17" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M9.5 14.5v2.3c0 .55-.34 1.04-.86 1.22L7 18.6V20h10v-1.4l-1.64-.58a1.3 1.3 0 0 1-.86-1.22v-2.3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span>Leaderboard</span>
+    </button>
+    <button class="nav-btn" data-page="wallet">
+      <svg class="ic" viewBox="0 0 24 24" fill="none"><path d="M3 7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v1H5a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V10a2 2 0 0 0-2-2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span>Wallet</span>
+    </button>
+    <button class="nav-btn" data-page="profile">
+      <svg class="ic" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="3.4" stroke="currentColor" stroke-width="1.7"/><path d="M5 20c0-3.3 3.13-6 7-6s7 2.7 7 6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+      <span>Profile</span>
+    </button>
+  </nav>
+
+</div>
+
+<!-- ELIGIBILITY POPUP MODAL -->
+<div class="modal-overlay" id="eligibilityModal">
+  <div class="modal-box">
+    <button class="modal-close-x" id="eligibilityCloseX" aria-label="Close">&times;</button>
+
+    <h2 class="modal-title">My Team Eligibility &amp; Score Check</h2>
+
+    <div class="modal-score">
+      <span class="modal-score-label">Current Team Score</span>
+      <span class="modal-score-value">1250</span>
+    </div>
+
+    <div class="modal-players">
+      <div class="modal-player-row">
+        <div class="modal-player-avatar">G</div>
+        <span class="modal-player-name">GamerOne</span>
+      </div>
+      <div class="modal-player-row">
+        <div class="modal-player-avatar">S</div>
+        <span class="modal-player-name">SniperAlpha</span>
+      </div>
+      <div class="modal-player-row">
+        <div class="modal-player-avatar">E</div>
+        <span class="modal-player-name">EliteFour</span>
+      </div>
+      <div class="modal-player-row">
+        <div class="modal-player-avatar">A</div>
+        <span class="modal-player-name">ApexG</span>
+      </div>
+    </div>
+
+    <div class="modal-status">
+      <div class="modal-status-icon">&#10003;</div>
+      <div class="modal-status-text">ELIGIBLE</div>
+      <div class="modal-status-sub">Team is eligible to join</div>
+    </div>
+
+    <button class="modal-close-btn" id="eligibilityCloseBtn">Close</button>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script src="js/app.js"></script>
+</body>
+</html>
