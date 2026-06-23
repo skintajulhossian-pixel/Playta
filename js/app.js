@@ -438,8 +438,8 @@ const tournaments = [
     totalPrizePool: 480,
     perKillPrize: 8,
     entryFee: 10,
-    totalSlots: 48,
-    joinedSlots: 48,
+    totalSlots: 50,
+    joinedSlots: 50,
     isRegistered: false,
     roomId: '9876544',
     roomPassword: 'playta456'
@@ -483,7 +483,7 @@ const tournaments = [
     totalPrizePool: 3800,
     perKillPrize: 35,
     entryFee: 100,
-    totalSlots: 48,
+    totalSlots: 50,
     joinedSlots: 44,
     isRegistered: false,
     roomId: '9876547',
@@ -526,14 +526,16 @@ function renderTournamentList() {
   if (!scrollEl) return;
 
   scrollEl.innerHTML = tournaments.map((t) => {
-    const isFull = t.joinedSlots >= t.totalSlots;
-    const fillPercent = Math.min(100, Math.round((t.joinedSlots / t.totalSlots) * 100));
+    // Capacity rule: Solo matches are full at 50 slots, Duo/Squad at 48 slots
+    const capacity = t.type === 'Solo' ? 50 : 48;
+    const isFull = t.joinedSlots >= capacity;
+    const fillPercent = Math.min(100, Math.round((t.joinedSlots / capacity) * 100));
 
-    let btnLabel = 'Pay &amp; Register';
+    let btnLabel = 'Join Now';
     let btnClass = '';
     let btnDisabled = '';
     if (t.isRegistered) {
-      btnLabel = 'Registered ✓';
+      btnLabel = 'Joined';
       btnClass = 'registered';
       btnDisabled = 'disabled';
     } else if (isFull) {
@@ -576,7 +578,7 @@ function renderTournamentList() {
         <div class="match-card-bottom">
           <div class="match-progress-wrap">
             <div class="match-progress-labels">
-              <span>${t.joinedSlots}/${t.totalSlots} joined</span>
+              <span>${t.joinedSlots}/${capacity} joined</span>
               <span>${fillPercent}%</span>
             </div>
             <div class="match-progress-track">
@@ -629,172 +631,4 @@ function initTournamentListView() {
   const backBtn = document.getElementById('tlistBackBtn');
   if (backBtn) {
     backBtn.addEventListener('click', closeTournamentListView);
-  }
-}
-
-/* ───────────────────────────────
-   MY MATCHES
-   Pulls registered matches straight from the shared
-   `tournaments` array (isRegistered === true) — one
-   source of truth, no duplicate data to keep in sync.
-─────────────────────────────── */
-
-function formatMatchTime(timestamp) {
-  const d = new Date(timestamp);
-  return d.toLocaleString('en-IN', {
-    day: '2-digit', month: '2-digit', year: 'numeric',
-    hour: '2-digit', minute: '2-digit', hour12: true
-  });
-}
-
-function renderMyMatches() {
-  const listEl = document.getElementById('mmUpcomingList');
-  if (!listEl) return;
-
-  const registered = tournaments.filter((t) => t.isRegistered);
-
-  if (registered.length === 0) {
-    listEl.innerHTML = '<p class="mm-empty">You haven\'t registered for any match yet. Join a tournament from the Free Fire Max list!</p>';
-    return;
-  }
-
-  listEl.innerHTML = registered.map((m) => `
-    <article class="t-card" data-match-id="${m.matchId}">
-      <div class="t-card-top">
-        <div class="t-game-icon">🔥</div>
-        <div class="t-card-info">
-          <div class="t-name">Free Fire Max - Match ${m.matchId}</div>
-          <div class="t-time">${formatMatchTime(m.startsAt)}</div>
-        </div>
-        <div class="t-mode">${m.type}</div>
-      </div>
-
-      <div class="mm-card-title-row">${m.matchTitle}</div>
-
-      <div class="t-stats">
-        <div class="t-stat">
-          <span class="t-stat-label">Prize Pool</span>
-          <span class="t-stat-value prize">₹${m.totalPrizePool.toLocaleString('en-IN')}</span>
-        </div>
-        <div class="t-stat">
-          <span class="t-stat-label">Per Kill</span>
-          <span class="t-stat-value prize">₹${m.perKillPrize}</span>
-        </div>
-      </div>
-
-      <span class="mm-registered-badge">Registered</span>
-
-      ${renderRoomBox(m)}
-    </article>
-  `).join('');
-
-  bindRoomBoxEvents(listEl);
-}
-
-/* ── Shared 3-state Room ID/Password box ──
-   State 1 — not registered:        strictly locked, red/grey lock
-   State 2 — registered, > 1 min:   locked, cyan/yellow lock + note
-   State 3 — registered, <= 1 min:  unlocked, shows Room ID/Password + Copy
-   Used both in the Tournament List view and My Matches. */
-function renderRoomBox(m) {
-  const roomKey = m.matchId.replace('#', '');
-
-  if (!m.isRegistered) {
-    return `
-      <div class="mm-room-box state-unregistered" data-match-id="${m.matchId}" data-starts-at="${m.startsAt}" data-registered="false">
-        <div class="mm-room-locked">
-          <span class="mm-room-lock-icon">🔒</span>
-          <span class="mm-room-locked-text">Join the match to unlock Room ID &amp; Password.</span>
-        </div>
-      </div>`;
-  }
-
-  return `
-    <div class="mm-room-box state-registered" id="room-${roomKey}" data-match-id="${m.matchId}" data-starts-at="${m.startsAt}" data-registered="true">
-      <div class="mm-room-locked">
-        <span class="mm-room-lock-icon">🔒</span>
-        <span class="mm-room-locked-text">You are registered! Room details will be revealed exactly 1 minute before the match.</span>
-      </div>
-      <div class="mm-room-unlocked">
-        <div class="mm-room-row">
-          <span class="mm-room-label">Room ID</span>
-          <span class="mm-room-value">${m.roomId}</span>
-        </div>
-        <div class="mm-room-row">
-          <span class="mm-room-label">Password</span>
-          <span class="mm-room-value">${m.roomPassword}</span>
-        </div>
-        <button class="mm-copy-btn" data-room-id="${m.roomId}" data-room-password="${m.roomPassword}">Copy Room Details</button>
-      </div>
-    </div>`;
-}
-
-function bindRoomBoxEvents(container) {
-  container.querySelectorAll('.mm-copy-btn').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      const text = `Room ID: ${btn.dataset.roomId}\nPassword: ${btn.dataset.roomPassword}`;
-      copyToClipboard(text);
-    });
-  });
-}
-
-function copyToClipboard(text) {
-  if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(text)
-      .then(() => showToast('Room Details Copied!', 'ok'))
-      .catch(() => showToast('Could not copy — try again.'));
-  } else {
-    // Fallback for older browsers without Clipboard API
-    const temp = document.createElement('textarea');
-    temp.value = text;
-    document.body.appendChild(temp);
-    temp.select();
-    try {
-      document.execCommand('copy');
-      showToast('Room Details Copied!', 'ok');
-    } catch (e) {
-      showToast('Could not copy — try again.');
-    }
-    document.body.removeChild(temp);
-  }
-}
-
-/* Runs every second. For each registered room box, flips
-   to "unlocked" once we're inside the 1-minute window
-   before the match start time. Unregistered boxes never
-   unlock no matter how close the match gets. */
-function checkRoomUnlocks() {
-  document.querySelectorAll('.mm-room-box[data-registered="true"]').forEach((box) => {
-    const startsAt = Number(box.dataset.startsAt);
-    const timeLeft = startsAt - Date.now();
-    const oneMinute = 60 * 1000;
-
-    box.classList.toggle('unlocked', timeLeft <= oneMinute);
-  });
-}
-
-function initMyMatchesSubtabs() {
-  const tabs = document.querySelectorAll('.mm-subtab');
-
-  tabs.forEach((tab) => {
-    tab.addEventListener('click', () => {
-      const target = tab.dataset.mmtab; // "upcoming" or "results"
-
-      tabs.forEach((t) => t.classList.remove('active'));
-      tab.classList.add('active');
-
-      document.querySelectorAll('.mm-panel').forEach((panel) => {
-        panel.classList.remove('active');
-      });
-      document.getElementById(`mm-${target}`).classList.add('active');
-    });
-  });
-}
-
-function initMyMatches() {
-  renderMyMatches();
-  initMyMatchesSubtabs();
-
-  checkRoomUnlocks();
-  setInterval(checkRoomUnlocks, 1000);
-}
+ 
