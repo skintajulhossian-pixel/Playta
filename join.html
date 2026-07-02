@@ -278,7 +278,8 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--cyan); outl
      selectedMatchId   → which match the user tapped
    ═══════════════════════════════════════════ */
 
-const TEAM_SIZE = { Solo: 1, Duo: 2, Squad: 4 };
+const TEAM_SIZE       = { Solo: 1, Duo: 2, Squad: 4 };
+const TEAM_SLOT_COUNT = { Duo: 24, Squad: 12 };  // total team slots per match type
 
 // Will be set from localStorage on init
 let currentMatchType  = 'Squad';
@@ -375,8 +376,9 @@ function joinSoloSlot(slotNumber) {
 /* ─── DUO / SQUAD team grid ───────────────── */
 function renderTeamGrid() {
   const size   = TEAM_SIZE[currentMatchType];
+  const total  = teamSlots.length;
   const booked = teamSlots.filter(t => t.status === 'booked').length;
-  document.getElementById('jmSlotsCount').textContent = booked + ' / 12 teams';
+  document.getElementById('jmSlotsCount').textContent = booked + ' / ' + total + ' teams';
 
   document.getElementById('teamGrid').innerHTML = teamSlots.map(team => {
     if (team.status === 'booked') {
@@ -500,6 +502,17 @@ function confirmBooking() {
   // ── Valid match found — set context ──
   currentMatchType  = activeMatch.matchType || 'Squad';
   entryFeePerPlayer = Number(activeMatch.entryFee) || 0;
+
+  // Re-build teamSlots with the correct count for this match type
+  // Duo → 24 team slots (24×2 = 48 players)
+  // Squad → 12 team slots (12×4 = 48 players)
+  const slotCount = TEAM_SLOT_COUNT[currentMatchType] || 12;
+  teamSlots = Array.from({ length: slotCount }, (_, i) => ({
+    teamNumber: i + 1,
+    status: 'open',
+    teamName: null,
+    roster: []
+  }));
 
   // Update header with real match data
   document.getElementById('jmMatchTitle').textContent = activeMatch.title;
