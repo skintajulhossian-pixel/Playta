@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Playta — Admin Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800;900&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ════════════════════════════════════
+     LOGIN PAGE
+     ════════════════════════════════════ -->
+<div id="login-page">
+  <div class="login-card">
+
+    <div class="login-logo">
+      <div class="login-logo-icon">🏆</div>
+      <div class="login-logo-name">PLAYTA</div>
+      <div class="login-logo-sub">Admin Control Panel</div>
+    </div>
+
+    <div class="login-title">Welcome back 👋</div>
+    <div class="login-sub">Sign in to manage your tournament platform</div>
+
+    <div id="login-error" class="error-alert hidden">
+      <span>⚠</span>
+      <span>Invalid email or password. Please try again.</span>
+    </div>
+
+    <div class="form-field">
+      <label for="login-email">Email / Username</label>
+      <div class="input-wrap">
+        <span class="icon">✉</span>
+        <input type="text" id="login-email" class="form-input" placeholder="admin@playta.com" autocomplete="email">
+      </div>
+    </div>
+
+    <div class="form-field">
+      <label for="login-password">Password</label>
+      <div class="input-wrap">
+        <span class="icon">🔒</span>
+        <input type="password" id="login-password" class="form-input pw-field" placeholder="Enter your password">
+        <button class="pw-toggle" id="pw-toggle" onclick="togglePassword()" type="button">👁</button>
+      </div>
+    </div>
+
+    <div class="login-options">
+      <label class="remember-label">
+        <input type="checkbox" id="remember-me"> Remember me
+      </label>
+      <a href="#" class="forgot-link">Forgot password?</a>
+    </div>
+
+    <button class="btn-login" id="login-btn" onclick="handleLogin()">
+      <span class="btn-text">Sign In to Dashboard</span>
+      <div class="btn-spinner"></div>
+    </button>
+
+    <div class="demo-box">
+      <strong>Demo Credentials</strong><br>
+      Super Admin: admin@playta.com / playta123<br>
+      Admin: manager@playta.com / admin123<br>
+      Moderator: mod@playta.com / mod123
+    </div>
+
+  </div>
+</div>
+
+<!-- ════════════════════════════════════
+     DASHBOARD
+     ════════════════════════════════════ -->
+<div id="dashboard" class="hidden">
+
+  <!-- Sidebar mobile overlay -->
+  <div class="sb-overlay hidden" id="sb-overlay" onclick="closeSidebar()"></div>
+
+  <!-- ── SIDEBAR ── -->
+  <aside class="sidebar" id="main-sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-icon">🏆</div>
+      <div>
+        <div class="brand-name">PLAYTA</div>
+        <div class="brand-sub">Admin Panel</div>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Main</div>
+
+      <div class="nav-item active" data-page="dash" onclick="navigateTo('dash')">
+        <span class="nav-icon">📊</span> Dashboard
+      </div>
+      <div class="nav-item" data-page="create" onclick="navigateTo('create')">
+        <span class="nav-icon">➕</span> Create Match
+      </div>
+      <div class="nav-item" data-page="tlist" onclick="navigateTo('tlist')">
+        <span class="nav-icon">🏆</span> Tournament List
+      </div>
+
+      <div class="nav-section-label">Management</div>
+
+      <div class="nav-item" data-page="users" onclick="navigateTo('users')">
+        <span class="nav-icon">👥</span> Users
+      </div>
+      <div class="nav-item" data-page="withdraw" onclick="navigateTo('withdraw')">
+        <span class="nav-icon">💸</span> Withdraw Requests
+        <span class="nav-badge">12</span>
+      </div>
+      <div class="nav-item" data-page="transactions" onclick="navigateTo('transactions')">
+        <span class="nav-icon">💳</span> Transactions
+      </div>
+      <div class="nav-item" id="nav-wallet" data-page="wallet" onclick="navigateTo('wallet')">
+        <span class="nav-icon">👛</span> Wallet
+      </div>
+      <div class="nav-item" data-page="analytics" onclick="navigateTo('analytics')">
+        <span class="nav-icon">📈</span> Analytics
+      </div>
+
+      <div class="nav-section-label">System</div>
+
+      <div class="nav-item" data-page="notifications" onclick="navigateTo('notifications')">
+        <span class="nav-icon">🔔</span> Notifications
+        <span class="nav-badge">9</span>
+      </div>
+      <div class="nav-item" data-page="support" onclick="navigateTo('support')">
+        <span class="nav-icon">🎧</span> Support Tickets
+        <span class="nav-badge">4</span>
+      </div>
+      <div class="nav-item" data-page="reports" onclick="navigateTo('reports')">
+        <span class="nav-icon">📋</span> Reports
+      </div>
+      <div class="nav-item" id="nav-settings" data-page="settings" onclick="navigateTo('settings')">
+        <span class="nav-icon">⚙️</span> Settings
+      </div>
+      <div class="nav-item danger" onclick="handleLogout()" style="margin-top:8px">
+        <span class="nav-icon">🚪</span> Logout
+      </div>
+    </nav>
+
+    <div class="sidebar-bottom">
+      <div class="plan-card">
+        <div class="plan-icon">🏅</div>
+        <div class="plan-label">Current Plan</div>
+        <div class="plan-name">Premium</div>
+        <button class="btn-upgrade">Upgrade Plan</button>
+      </div>
+      <div style="margin-top:12px;text-align:center">
+        <div class="admin-av" id="sb-av-text" style="width:32px;height:32px;border-radius:50%;background:linear-gradient(90deg,#00F5A0,#00D9FF);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#000;margin:0 auto 6px">SA</div>
+        <div id="sb-name-text" style="font-size:12.5px;font-weight:600">Super Admin</div>
+        <div id="sb-role-badge" style="font-size:10.5px;color:var(--green);margin-top:2px">Full Access</div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ── MAIN WRAPPER ── -->
+  <div class="main-wrapper">
+
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <button class="topbar-menu" onclick="openSidebar()">☰</button>
+      <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input type="text" class="search-input" placeholder="Search anything…">
+      </div>
+      <div class="topbar-right">
+        <div class="online-indicator">
+          <div class="online-dot"></div>
+          <span id="page-title">Dashboard</span>
+        </div>
+        <button class="tb-icon-btn" title="Notifications">
+          🔔<span class="notif-dot"></span>
+        </button>
+        <div class="admin-profile" onclick="navigateTo('settings')">
+          <div class="admin-av" id="admin-av-text">SA</div>
+          <div>
+            <div class="admin-name" id="admin-name-text">admin</div>
+            <div class="admin-role" id="admin-role-text">Super Admin</div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- CONTENT AREA -->
+    <div class="content-area">
+
+      <!-- ══════════════════════════════
+           PAGE: DASHBOARD
+           ══════════════════════════════ -->
+      <section class="page-section active" id="page-dash">
+
+        <div style="margin-bottom:16px">
+          <div style="font-size:18px;font-weight:700">Dashboard Overview</div>
+          <div id="dash-greeting" style="font-size:13px;color:var(--t1);margin-top:3px">Loading…</div>
+        </div>
+
+        <!-- STATS ROW -->
+        <div class="stats-row">
+          <div class="stat-card">
+            <div class="stat-icon si-green">👥</div>
+            <div>
+              <div class="stat-label">Total Users</div>
+              <div class="stat-value">24,568</div>
+              <div class="stat-delta delta-up">↑ 12.5% vs last 7 days</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon si-cyan">👤</div>
+            <div>
+              <div class="stat-label">Today's Active Users</div>
+              <div class="stat-value">4,325</div>
+              <div class="stat-delta delta-up">↑ 8.3% vs yesterday</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon si-purple">🏆</div>
+            <div>
+              <div class="stat-label">Mega Tournaments</div>
+              <div class="stat-value" id="stat-mega">0</div>
+              <div class="stat-delta delta-up">↑ 4.7% vs last 7 days</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon si-orange">🎮</div>
+            <div>
+              <div class="stat-label">Daily Tournaments</div>
+              <div class="stat-value" id="stat-daily">0</div>
+              <div class="stat-delta delta-up">↑ 14.6% vs last 7 days</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon si-red">🔴</div>
+            <div>
+              <div class="stat-label">Live Matches</div>
+              <div class="stat-value live-now" id="stat-live">0</div>
+              <div class="stat-delta" style="color:var(--red)">Live Now</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon si-grad">💰</div>
+            <div>
+              <div class="stat-label">Today's Revenue</div>
+              <div class="stat-value">₹45,680</div>
+              <div class="stat-delta delta-up">↑ 15.6% vs yesterday</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- DASHBOARD GRID -->
+        <div class="dash-grid">
+
+          <!-- LEFT COLUMN -->
+          <div>
+            <!-- CREATE MATCH PANEL -->
+            <div class="panel">
+              <div class="panel-header">
+                <div class="panel-title">
+                  <span class="panel-dot"></span> NEW MATCH
+                </div>
+                <span class="panel-tag" style="cursor:pointer" onclick="document.getElementById('form-body').classList.toggle('hidden')">− Minimize</span>
+              </div>
+              <div id="form-body">
+                <!-- Row 1 -->
+                <div class="form-grid three" style="margin-bottom:13px">
+                  <div class="form-group" style="grid-column:1">
+                    <label class="form-label" for="mTitle">Match Title</label>
+                    <input type="text" id="mTitle" class="dash-input" placeholder="e.g. Free Fire Squad Showdown">
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="mFee">Entry Fee (₹)</label>
+                    <div class="input-prefix">
+                      <span class="prefix-icon">₹</span>
+                      <input type="number" id="mFee" class="dash-input" placeholder="0" min="0">
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="mPrize">Total Prize Pool (₹)</label>
+                    <div class="input-prefix">
+                      <span class="prefix-icon">₹</span>
+                      <input type="number" id="mPrize" class="dash-input" placeholder="0" min="0">
+                    </div>
+                  </div>
+                </div>
+                <!-- Row 2 -->
+                <div class="form-grid two" style="margin-bottom:13px">
+                  <div class="form-group">
+                    <label class="form-label" for="mType">Match Type</label>
+                    <select id="mType" class="dash-select">
+                      <option value="Solo">🎯 Solo (48 players)</option>
+                      <option value="Duo">👥 Duo (24 teams)</option>
+                      <option value="Squad">⚔️ Squad (12 teams)</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="mKill">Per Kill Prize (₹)</label>
+                    <div class="input-prefix">
+                      <span class="prefix-icon">₹</span>
+                      <input type="number" id="mKill" class="dash-input" placeholder="0" min="0">
+                    </div>
+                  </div>
+                </div>
+
+                <!-- PRIZE DISTRIBUTION BREAKDOWN -->
+                <div class="prize-dist-section" style="margin-bottom:13px">
+                  <div class="prize-dist-header">
+                    <div class="prize-dist-title">
+                      <span class="prize-dist-icon">🏅</span>
+                      Prize Distribution Breakdown
+                    </div>
+                    <span class="prize-dist-hint">Optional — stored with match data</span>
+                  </div>
+                  <div id="rankRowsContainer">
+                    <div class="rank-row" data-index="0">
+                      <div class="rank-row-num">1</div>
+                      <div class="rank-row-fields">
+                        <input type="text" class="dash-input rank-pos-input" placeholder="e.g. Rank 1 / Booyah" maxlength="30">
+                        <div class="rank-prize-wrap">
+                          <span class="rank-prize-prefix">₹</span>
+                          <input type="number" class="dash-input rank-prize-input" placeholder="0" min="0" oninput="updateDistributedTotal()">
+                        </div>
+                      </div>
+                      <button class="rank-remove-btn" onclick="removeRankRow(this)" type="button" style="visibility:hidden">✕</button>
+                    </div>
+                  </div>
+                  <button class="btn-add-rank" onclick="addRankRow()" type="button">+ Add Rank</button>
+                  <div class="rank-total-row">
+                    <span class="rank-total-label">Distributed Total:</span>
+                    <span class="rank-total-value" id="rankDistributedTotal">₹0</span>
+                  </div>
+                </div>
+                <!-- Row 3 -->
+                <div class="form-grid two" style="margin-bottom:13px">
+                  <div class="form-group">
+                    <label class="form-label" for="mCat">Tournament Category</label>
+                    <select id="mCat" class="dash-select">
+                      <option value="Mega Tournament">🏅 Mega Tournament</option>
+                      <option value="Daily Custom Room">🎮 Daily Custom Room</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="mSpots">Total Spots / Slots</label>
+                    <input type="number" id="mSpots" class="dash-input" placeholder="48" value="48" min="1">
+                  </div>
+                </div>
+                <!-- Row 4 -->
+                <div class="form-group" style="margin-bottom:13px">
+                  <label class="form-label" for="mDt">Date & Time</label>
+                  <input type="datetime-local" id="mDt" class="dash-input" style="color-scheme:dark">
+                </div>
+                <!-- Rules -->
+                <div class="form-group">
+                  <label class="form-label" for="mRules">Custom Rules Highlight (Cyan Info Box)</label>
+                  <textarea id="mRules" class="dash-textarea" placeholder="e.g. SQUAD - Bermuda Map | Ryden BAN | Screen Recording Mandatory" oninput="onRulesInput()"></textarea>
+                  <div id="rules-preview" class="rules-box" style="display:none"></div>
+                  <div class="input-hint">This text appears as a cyan highlight box on each match card in the app.</div>
+                </div>
+                <button class="btn-create" onclick="createMatch()">➕ Create Match</button>
+              </div>
+            </div>
+
+            <!-- TOURNAMENT LIST PANEL -->
+            <div class="panel">
+              <div class="panel-header">
+                <div class="panel-title">
+                  <span class="panel-dot purple"></span> TOURNAMENT LIST
+                </div>
+                <div style="display:flex;gap:8px;align-items:center">
+                  <span class="panel-tag" id="match-count-label">0 matches</span>
+                  <span class="panel-tag" style="cursor:pointer;color:var(--green);border-color:rgba(0,245,160,0.3)" onclick="renderMatchTable()">↺ Refresh</span>
+                </div>
+              </div>
+              <!-- Tabs -->
+              <div class="tabs-row">
+                <button class="tab-btn active" onclick="switchTab('mega', this)">Mega Tournaments</button>
+                <button class="tab-btn" onclick="switchTab('daily', this)">Daily Tournaments</button>
+              </div>
+              <!-- Search & Filter -->
+              <div class="t-search-row">
+                <div class="t-search-wrap">
+                  <span class="t-search-ic">🔍</span>
+                  <input type="text" id="t-search" class="t-search" placeholder="Search tournament…" oninput="renderMatchTable()">
+                </div>
+                <select id="t-status" class="t-filter" onchange="renderMatchTable()">
+                  <option value="all">All Status</option>
+                  <option value="live">Live</option>
+                  <option value="upcoming">Upcoming</option>
+                  <option value="done">Completed</option>
+                </select>
+              </div>
+              <!-- Table -->
+              <div style="overflow-x:auto">
+                <table class="t-table">
+                  <thead>
+                    <tr>
+                      <th>Match</th>
+                      <th>Type</th>
+                      <th>Entry</th>
+                      <th>Prize Pool</th>
+                      <th>Slots</th>
+                      <th>Date & Time</th>
+                      <th>Status</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="t-body">
+                    <tr><td colspan="8" style="text-align:center;padding:24px;color:var(--t2)">No matches yet. Create one above.</td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <button class="view-all-btn">View All Tournaments →</button>
+            </div>
+
+            <!-- BOTTOM RECENT PANELS -->
+            <div class="recent-grid">
+              <!-- Recent Withdrawals -->
+              <div class="panel">
+                <div class="panel-header">
+                  <div class="panel-title"><span class="panel-dot orange"></span> RECENT WITHDRAWALS</div>
+                  <a href="#" style="font-size:12px;color:var(--green)" onclick="navigateTo('withdraw');return false">View All</a>
+                </div>
+                <div class="user-row">
+                  <div class="user-av" style="background:linear-gradient(135deg,#7C4DFF,#00D9FF)">RS</div>
+                  <div><div class="user-name">Rohit Sharma</div><div class="user-sub">UPI: rohit@upi</div></div>
+                  <div class="user-amount">₹2,500</div>
+                  <span class="badge badge-pending" style="margin-right:8px">PENDING</span>
+                  <div class="action-btns">
+                    <button class="action-btn ok" onclick="showToast('Approved!')">✓</button>
+                    <button class="action-btn no" onclick="showToast('Rejected','warn')">✗</button>
+                  </div>
+                </div>
+                <div class="user-row">
+                  <div class="user-av" style="background:linear-gradient(135deg,#00F5A0,#00D9FF)">PG</div>
+                  <div><div class="user-name">Priya Gaming</div><div class="user-sub">UPI: priya@paytm</div></div>
+                  <div class="user-amount">₹1,800</div>
+                  <span class="badge badge-approved">APPROVED</span>
+                </div>
+                <div class="user-row">
+                  <div class="user-av" style="background:linear-gradient(135deg,#FF9F43,#FF4C4C)">AK</div>
+                  <div><div class="user-name">Aarav Kumar</div><div class="user-sub">UPI: aarav@gpay</div></div>
+                  <div class="user-amount">₹3,200</div>
+                  <span class="badge badge-pending" style="margin-right:8px">PENDING</span>
+                  <div class="action-btns">
+                    <button class="action-btn ok" onclick="showToast('Approved!')">✓</button>
+                    <button class="action-btn no" onclick="showToast('Rejected','warn')">✗</button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Recent Registrations -->
+              <div class="panel">
+                <div class="panel-header">
+                  <div class="panel-title"><span class="panel-dot cyan"></span> RECENT REGISTRATIONS</div>
+                  <a href="#" style="font-size:12px;color:var(--green)" onclick="navigateTo('users');return false">View All</a>
+                </div>
+                <div class="user-row">
+                  <div class="user-av" style="background:var(--cyan);color:#000">PG</div>
+                  <div><div class="user-name">Priya Gaming</div><div class="user-sub">priyagaming@playta.com</div></div>
+                  <div class="user-time">2 mins ago</div>
+                  <span class="online-dot" style="margin-left:6px"></span>
+                </div>
+                <div class="user-row">
+                  <div class="user-av" style="background:var(--purple);color:#fff">KM</div>
+                  <div><div class="user-name">Karan Malhotra</div><div class="user-sub">karan@playta.com</div></div>
+                  <div class="user-time">8 mins ago</div>
+                </div>
+                <div class="user-row">
+                  <div class="user-av" style="background:var(--orange);color:#000">VS</div>
+                  <div><div class="user-name">Vikram Singh</div><div class="user-sub">vikram@playta.com</div></div>
+                  <div class="user-time">15 mins ago</div>
+                </div>
+              </div>
+
+              <!-- Latest Activity -->
+              <div class="panel">
+                <div class="panel-header">
+                  <div class="panel-title"><span class="panel-dot"></span> LATEST ACTIVITY</div>
+                  <span class="panel-tag">View All</span>
+                </div>
+                <div class="activity-item">
+                  <div class="act-dot"></div>
+                  <div class="act-text">New tournament "Free Fire Cup" created</div>
+                  <div class="act-time">10m</div>
+                </div>
+                <div class="activity-item">
+                  <div class="act-dot" style="background:var(--orange);box-shadow:0 0 5px var(--orange)"></div>
+                  <div class="act-text">Withdraw ₹2,500 from Rohit Sharma</div>
+                  <div class="act-time">18m</div>
+                </div>
+                <div class="activity-item">
+                  <div class="act-dot" style="background:var(--cyan);box-shadow:0 0 5px var(--cyan)"></div>
+                  <div class="act-text">New user Priya Gaming registered</div>
+                  <div class="act-time">24m</div>
+                </div>
+                <div class="activity-item">
+                  <div class="act-dot"></div>
+                  <div class="act-text">Squad #482 completed — 48 players</div>
+                  <div class="act-time">35m</div>
+                </div>
+                <div class="activity-item">
+                  <div class="act-dot" style="background:var(--purple);box-shadow:0 0 5px var(--purple)"></div>
+                  <div class="act-text">Entry fees ₹1,440 collected from 48 players</div>
+                  <div class="act-time">1h</div>
+                </div>
+              </div>
+            </div>
+
+          </div><!-- /left col -->
+
+          <!-- RIGHT COLUMN -->
+          <div>
+            <!-- Analytics Overview -->
+            <div class="panel">
+              <div class="panel-header">
+                <div class="panel-title"><span class="panel-dot"></span> ANALYTICS OVERVIEW</div>
+                <span class="panel-tag">Last 7 Days</span>
+              </div>
+              <div class="analytics-grid">
+                <div class="spark-card">
+                  <div class="spark-label">Revenue</div>
+                  <div class="spark-value" style="color:var(--green)">₹2,45,680</div>
+                  <div class="spark-delta delta-up">▲ 18.6%</div>
+                  <div class="spark-chart"><canvas id="spark-rev"></canvas></div>
+                </div>
+                <div class="spark-card">
+                  <div class="spark-label">Users Growth</div>
+                  <div class="spark-value" style="color:var(--cyan)">+1,245</div>
+                  <div class="spark-delta delta-up">▲ 12.3%</div>
+                  <div class="spark-chart"><canvas id="spark-users"></canvas></div>
+                </div>
+                <div class="spark-card">
+                  <div class="spark-label">Tournaments</div>
+                  <div class="spark-value" style="color:var(--purple)">+42</div>
+                  <div class="spark-delta delta-up">▲ 9.1%</div>
+                  <div class="spark-chart"><canvas id="spark-mega"></canvas></div>
+                </div>
+                <div class="spark-card">
+                  <div class="spark-label">Transactions</div>
+                  <div class="spark-value" style="color:var(--orange)">+1,645</div>
+                  <div class="spark-delta delta-down">▼ 3.2%</div>
+                  <div class="spark-chart"><canvas id="spark-txn"></canvas></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- System Status -->
+            <div class="panel">
+              <div class="panel-header">
+                <div class="panel-title"><span class="panel-dot"></span> SYSTEM STATUS</div>
+                <span class="panel-tag" style="color:var(--green)">All Online</span>
+              </div>
+              <div class="status-row">
+                <div class="status-name"><span class="s-dot on"></span>🖥 Server</div>
+                <span class="s-tag on">Online</span>
+              </div>
+              <div class="status-row">
+                <div class="status-name"><span class="s-dot on"></span>💳 Payment Gateway</div>
+                <span class="s-tag on" style="color:var(--green)">Online ●</span>
+              </div>
+              <div class="status-row">
+                <div class="status-name"><span class="s-dot on"></span>🗄 Database</div>
+                <span class="s-tag on">Online</span>
+              </div>
+              <div class="status-row">
+                <div class="status-name"><span class="s-dot on"></span>📦 Storage</div>
+                <span class="s-tag on" style="color:var(--green)">Online ●</span>
+              </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="panel">
+              <div class="panel-header">
+                <div class="panel-title"><span class="panel-dot orange"></span> QUICK ACTIONS</div>
+              </div>
+              <div class="qa-grid">
+                <div class="qa-item" onclick="navigateTo('create')">
+                  <div class="qa-icon qi-green">➕</div>
+                  <div><div class="qa-label">Create Match</div><div class="qa-sub">Add tournament</div></div>
+                </div>
+                <div class="qa-item" onclick="navigateTo('notifications')">
+                  <div class="qa-icon qi-cyan">📢</div>
+                  <div><div class="qa-label">Send Notification</div><div class="qa-sub">Broadcast</div></div>
+                </div>
+                <div class="qa-item" onclick="showToast('Banner upload coming soon!')">
+                  <div class="qa-icon qi-purple">🖼</div>
+                  <div><div class="qa-label">Add Banner</div><div class="qa-sub">Upload promo</div></div>
+                </div>
+                <div class="qa-item" onclick="navigateTo('withdraw')">
+                  <div class="qa-icon qi-orange">💸</div>
+                  <div><div class="qa-label">Approve Withdraw</div><div class="qa-sub">7 pending</div></div>
+                </div>
+                <div class="qa-item" onclick="navigateTo('users')">
+                  <div class="qa-icon qi-cyan">👥</div>
+                  <div><div class="qa-label">Manage Users</div><div class="qa-sub">24.5K users</div></div>
+                </div>
+                <div class="qa-item" onclick="navigateTo('reports')">
+                  <div class="qa-icon qi-red">📊</div>
+                  <div><div class="qa-label">View Reports</div><div class="qa-sub">Analytics</div></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Financial Overview -->
+            <div class="panel">
+              <div class="panel-header">
+                <div class="panel-title"><span class="panel-dot"></span> FINANCIAL OVERVIEW</div>
+                <span class="panel-tag">This Month</span>
+              </div>
+              <div class="fin-stats">
+                <div>
+                  <div class="fin-label">Total Revenue</div>
+                  <div class="fin-row">
+                    <div class="fin-value">₹12,45,680</div>
+                    <div class="stat-delta delta-up">▲ 18.6%</div>
+                  </div>
+                </div>
+                <div>
+                  <div class="fin-label">Total Withdraw</div>
+                  <div class="fin-row">
+                    <div class="fin-value">₹8,65,430</div>
+                    <div class="stat-delta delta-down">▼ 8.2%</div>
+                  </div>
+                </div>
+                <div>
+                  <div class="fin-label">Platform Profit</div>
+                  <div class="fin-row">
+                    <div class="fin-value">₹3,80,250</div>
+                    <div class="stat-delta delta-up">▲ 22.4%</div>
+                  </div>
+                </div>
+              </div>
+              <div class="fin-chart-wrap"><canvas id="chart-fin"></canvas></div>
+            </div>
+
+          </div><!-- /right col -->
+        </div><!-- /dash-grid -->
+      </section>
+
+      <!-- ══════════════════════════════
+           PAGE: ANALYTICS
+           ══════════════════════════════ -->
+      <section class="page-section" id="page-analytics">
+        <div style="font-size:18px;font-weight:700;margin-bottom:18px">Analytics & Insights</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+          <div class="panel">
+            <div class="panel-header"><div class="panel-title"><span class="panel-dot cyan"></span> User Growth</div></div>
+            <div style="height:220px;position:relative"><canvas id="chart-users"></canvas></div>
+          </div>
+          <div class="panel">
+            <div class="panel-header"><div class="panel-title"><span class="panel-dot"></span> Revenue</div></div>
+            <div style="height:220px;position:relative"><canvas id="chart-revenue"></canvas></div>
+          </div>
+          <div class="panel">
+            <div class="panel-header"><div class="panel-title"><span class="panel-dot purple"></span> Mega vs Daily</div></div>
+            <div style="height:220px;position:relative"><canvas id="chart-tournaments"></canvas></div>
+          </div>
+          <div class="panel">
+            <div class="panel-header"><div class="panel-title"><span class="panel-dot orange"></span> Match Completion</div></div>
+            <div style="height:220px;position:relative;display:flex;align-items:center;justify-content:center"><canvas id="chart-completion" style="max-height:200px;max-width:200px"></canvas></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ══════════════════════════════
+           PAGE: WALLET
+           ══════════════════════════════ -->
+      <section class="page-section" id="page-wallet">
+        <div style="font-size:18px;font-weight:700;margin-bottom:18px">Platform Wallet</div>
+        <div class="stats-row" style="grid-template-columns:repeat(4,1fr);margin-bottom:16px">
+          <div class="stat-card"><div class="stat-icon si-green">💰</div><div><div class="stat-label">Total Collected</div><div class="stat-value">₹3,24,800</div></div></div>
+          <div class="stat-card"><div class="stat-icon si-red">📤</div><div><div class="stat-label">Total Paid Out</div><div class="stat-value">₹2,82,000</div></div></div>
+          <div class="stat-card"><div class="stat-icon si-green">💎</div><div><div class="stat-label">Net Balance</div><div class="stat-value">₹42,800</div></div></div>
+          <div class="stat-card"><div class="stat-icon si-orange">⏳</div><div><div class="stat-label">Pending Payout</div><div class="stat-value">₹18,200</div></div></div>
+        </div>
+        <div class="panel"><div class="panel-header"><div class="panel-title"><span class="panel-dot"></span> Weekly Flow</div></div><div style="height:200px;position:relative"><canvas id="chart-wallet"></canvas></div></div>
+      </section>
+
+      <!-- ══════════════════════════════
+           OTHER PAGES (stub)
+           ══════════════════════════════ -->
+      <section class="page-section" id="page-create">
+        <div style="font-size:18px;font-weight:700;margin-bottom:18px">Create Match</div>
+        <div style="color:var(--t1);font-size:13px">Use the Create Match form on the Dashboard, or <a href="#" onclick="navigateTo('dash');return false" style="color:var(--green)">go back to Dashboard</a>.</div>
+      </section>
+
+      <section class="page-section" id="page-tlist">
+        <div style="font-size:18px;font-weight:700;margin-bottom:18px">Tournament List</div>
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title"><span class="panel-dot purple"></span> All Matches</div>
+            <span class="panel-tag" id="match-count-label" style="display:none">0</span>
+          </div>
+          <div class="tabs-row">
+            <button class="tab-btn active" onclick="switchTab('mega',this)">Mega Tournaments</button>
+            <button class="tab-btn" onclick="switchTab('daily',this)">Daily Tournaments</button>
+          </div>
+          <div class="t-search-row">
+            <div class="t-search-wrap"><span class="t-search-ic">🔍</span><input type="text" id="t-search" class="t-search" placeholder="Search…" oninput="renderMatchTable()"></div>
+            <select id="t-status" class="t-filter" onchange="renderMatchTable()"><option value="all">All Status</option><option value="live">Live</option><option value="upcoming">Upcoming</option><option value="done">Completed</option></select>
+          </div>
+          <div style="overflow-x:auto">
+            <table class="t-table"><thead><tr><th>Match</th><th>Type</th><th>Entry</th><th>Prize</th><th>Slots</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody id="t-body"><tr><td colspan="8" style="text-align:center;padding:24px;color:var(--t2)">Loading…</td></tr></tbody></table>
+          </div>
+        </div>
+      </section>
+
+      <section class="page-section" id="page-users"><div style="font-size:18px;font-weight:700;margin-bottom:18px">Users</div><div class="panel" style="color:var(--t1);font-size:13px;padding:32px;text-align:center">👥 User management module — connect to Firebase to load real users.</div></section>
+      <section class="page-section" id="page-withdraw"><div style="font-size:18px;font-weight:700;margin-bottom:18px">Withdraw Requests</div><div class="panel" style="color:var(--t1);font-size:13px;padding:32px;text-align:center">💸 Withdrawal management — connect to Firebase to load pending requests.</div></section>
+      <section class="page-section" id="page-transactions"><div style="font-size:18px;font-weight:700;margin-bottom:18px">Transactions</div><div class="panel" style="color:var(--t1);font-size:13px;padding:32px;text-align:center">💳 Transaction history — connect to Firebase to load transaction data.</div></section>
+      <section class="page-section" id="page-notifications"><div style="font-size:18px;font-weight:700;margin-bottom:18px">Notifications</div><div class="panel" style="color:var(--t1);font-size:13px;padding:32px;text-align:center">🔔 Push notification system — coming soon.</div></section>
+      <section class="page-section" id="page-support"><div style="font-size:18px;font-weight:700;margin-bottom:18px">Support Tickets</div><div class="panel" style="color:var(--t1);font-size:13px;padding:32px;text-align:center">🎧 Support ticket management — coming soon.</div></section>
+      <section class="page-section" id="page-reports"><div style="font-size:18px;font-weight:700;margin-bottom:18px">Reports</div><div class="panel" style="color:var(--t1);font-size:13px;padding:32px;text-align:center">📋 Exportable reports — connect to your backend to generate CSV/PDF.</div></section>
+      <section class="page-section" id="page-settings">
+        <div style="font-size:18px;font-weight:700;margin-bottom:18px">Settings</div>
+        <div class="panel">
+          <div class="panel-header"><div class="panel-title"><span class="panel-dot"></span> Danger Zone</div></div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:14px;background:rgba(255,76,76,0.04);border:1px solid rgba(255,76,76,0.2);border-radius:var(--r-sm)">
+            <div><div style="font-size:14px;font-weight:600">Clear All Matches</div><div style="font-size:12px;color:var(--t2);margin-top:3px">Permanently delete all matches from localStorage</div></div>
+            <button onclick="clearAllMatches()" style="padding:8px 16px;background:rgba(255,76,76,0.12);border:1px solid rgba(255,76,76,0.3);border-radius:8px;color:var(--red);font-size:12px;font-weight:700;cursor:pointer">🗑 Clear All</button>
+          </div>
+        </div>
+      </section>
+
+    </div><!-- /content-area -->
+  </div><!-- /main-wrapper -->
+</div><!-- /dashboard -->
+
+<!-- Toast container -->
+<div id="toast-container"></div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<!-- Admin Logic -->
+<script src="admin.js"></script>
+</body>
+</html>
