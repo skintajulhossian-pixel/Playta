@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="theme-color" content="#000000">
+<title>PLAYTA — Login</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- Neon edge lines -->
+<div class="edge-line left"  aria-hidden="true"></div>
+<div class="edge-line right" aria-hidden="true"></div>
+
+<div class="login-page">
+
+  <!-- ── LOGO ── -->
+  <div class="logo-wrap">
+    <svg class="logo-svg" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%"   stop-color="#00F5A0"/>
+          <stop offset="100%" stop-color="#00D9FF"/>
+        </linearGradient>
+      </defs>
+      <!-- Chat bubble shape -->
+      <path d="M10 18 Q10 8 20 8 L80 8 Q90 8 90 18 L90 62 Q90 72 80 72 L58 72 L50 85 L42 72 L20 72 Q10 72 10 62 Z"
+            fill="url(#logoGrad)" opacity="0.95"/>
+      <!-- Controller body -->
+      <rect x="26" y="32" width="48" height="26" rx="13" fill="#000" opacity="0.7"/>
+      <!-- Left D-pad -->
+      <rect x="33" y="41" width="9" height="3" rx="1.5" fill="#fff"/>
+      <rect x="35.5" y="38.5" width="4" height="8" rx="1.5" fill="#fff"/>
+      <!-- Right buttons (dots) -->
+      <circle cx="64" cy="42" r="2.2" fill="#fff"/>
+      <circle cx="70" cy="42" r="2.2" fill="#fff"/>
+      <circle cx="67" cy="47" r="2.2" fill="#fff"/>
+      <!-- Center button -->
+      <circle cx="50" cy="45" r="3" fill="#fff" opacity="0.5"/>
+      <!-- Joystick bumps -->
+      <circle cx="38" cy="53" r="3.5" fill="#fff" opacity="0.35"/>
+      <circle cx="62" cy="53" r="3.5" fill="#fff" opacity="0.35"/>
+      <!-- Dots on top -->
+      <circle cx="36" cy="26" r="1.5" fill="#000" opacity="0.5"/>
+      <circle cx="50" cy="22" r="2"   fill="#000" opacity="0.4"/>
+      <circle cx="64" cy="26" r="1.5" fill="#000" opacity="0.5"/>
+    </svg>
+  </div>
+
+  <!-- ── HEADING ── -->
+  <div class="heading-welcome">Welcome Back</div>
+  <div class="heading-gamer">Gamer</div>
+
+  <!-- ── FORM ── -->
+  <form class="login-form" id="login-form" novalidate onsubmit="handleLogin(event)">
+
+    <!-- Error box -->
+    <div class="error-box hidden" id="login-alert">
+      <span class="error-icon">
+        <!-- Exclamation circle outline icon -->
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="12" r="10" stroke="#FF4C4C" stroke-width="1.8"/>
+          <line x1="12" y1="8" x2="12" y2="13" stroke="#FF4C4C" stroke-width="2" stroke-linecap="round"/>
+          <circle cx="12" cy="16.5" r="1" fill="#FF4C4C"/>
+        </svg>
+      </span>
+      <span id="login-alert-text">Invalid email, mobile or password. Please try again.</span>
+    </div>
+
+    <!-- Email / Mobile / Username -->
+    <div class="field-group">
+      <label class="field-label" for="login-id">Email, mobile or username</label>
+      <div class="input-outer glow">
+        <div class="input-inner">
+          <span class="input-icon">
+            <!-- User outline SVG -->
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="8" r="4" stroke="#555" stroke-width="1.6"/>
+              <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="#555" stroke-width="1.6" stroke-linecap="round"/>
+            </svg>
+          </span>
+          <input
+            type="text"
+            id="login-id"
+            name="identifier"
+            placeholder="Enter your email, mobile or username"
+            autocomplete="username"
+            inputmode="email"
+            required
+            aria-label="Email, mobile or username"
+          >
+        </div>
+      </div>
+    </div>
+
+    <!-- Password -->
+    <div class="field-group">
+      <label class="field-label" for="login-password">Password</label>
+      <div class="input-outer">
+        <div class="input-inner">
+          <span class="input-icon">
+            <!-- Lock SVG -->
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <rect x="5" y="11" width="14" height="10" rx="2.5" stroke="#555" stroke-width="1.6"/>
+              <path d="M8 11V7a4 4 0 018 0v4" stroke="#555" stroke-width="1.6" stroke-linecap="round"/>
+              <circle cx="12" cy="16" r="1.5" fill="#555"/>
+            </svg>
+          </span>
+          <input
+            type="password"
+            id="login-password"
+            name="password"
+            placeholder="Enter your password"
+            autocomplete="current-password"
+            required
+            aria-label="Password"
+          >
+          <button
+            type="button"
+            class="eye-btn"
+            id="eye-toggle"
+            onclick="togglePw()"
+            aria-label="Toggle password visibility"
+          >
+            <!-- Eye SVG -->
+            <svg id="eye-open" width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <ellipse cx="12" cy="12" rx="9" ry="5.5" stroke="#666" stroke-width="1.6"/>
+              <circle cx="12" cy="12" r="2.5" stroke="#666" stroke-width="1.6"/>
+            </svg>
+            <svg id="eye-closed" width="20" height="20" viewBox="0 0 24 24" fill="none" style="display:none">
+              <path d="M3 3l18 18" stroke="#666" stroke-width="1.6" stroke-linecap="round"/>
+              <path d="M10.5 10.6A3 3 0 0013.4 13.5M6.5 6.6C4.6 7.9 3 9.8 3 12c0 3 4 7 9 7 1.9 0 3.7-.6 5.1-1.5M9 5.1A9 9 0 0112 5c5 0 9 4 9 7 0 1.1-.4 2.2-1 3.2" stroke="#666" stroke-width="1.6" stroke-linecap="round"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Remember me + Forgot password -->
+    <div class="check-row">
+      <div class="check-left">
+        <input type="checkbox" class="check-input" id="remember-me">
+        <label class="check-label" for="remember-me">Remember me</label>
+      </div>
+      <a href="#" class="forgot-link">Forgot password?</a>
+    </div>
+
+    <!-- 18+ confirmation -->
+    <div class="check-row" style="align-items:flex-start;margin-bottom:0">
+      <div class="check-left">
+        <input type="checkbox" class="check-input" id="age-confirm" required>
+        <label class="check-label" for="age-confirm">
+          I confirm that I am 18 years or older
+          <span class="check-sublabel">PLAYTA is only for users 18+ years old.</span>
+        </label>
+      </div>
+      <span class="info-icon" title="Age requirement info">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="12" r="9.5" stroke="#555" stroke-width="1.5"/>
+          <line x1="12" y1="11" x2="12" y2="17" stroke="#555" stroke-width="1.8" stroke-linecap="round"/>
+          <circle cx="12" cy="8" r="1" fill="#555"/>
+        </svg>
+      </span>
+    </div>
+
+    <!-- LOGIN Button -->
+    <button class="btn-login" type="submit" id="login-btn">
+      <span class="btn-text">LOGIN</span>
+      <div class="btn-spinner"></div>
+    </button>
+
+    <!-- OR Divider -->
+    <div class="or-divider">OR</div>
+
+    <!-- Google -->
+    <button type="button" class="social-btn" onclick="socialLogin('google')">
+      <span class="social-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+          <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+          <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
+          <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+        </svg>
+      </span>
+      Continue with Google
+    </button>
+
+    <!-- Facebook -->
+    <button type="button" class="social-btn" onclick="socialLogin('facebook')">
+      <span class="social-icon">
+        <svg width="26" height="26" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="12" cy="12" r="12" fill="#1877F2"/>
+          <path d="M16.5 8H14c-.6 0-1 .4-1 1v1.5h3.5l-.5 3H13V21h-3v-7.5H8v-3h2V9c0-2.2 1.8-4 4-4h2.5V8z" fill="#fff"/>
+        </svg>
+      </span>
+      Continue with Facebook
+    </button>
+
+  </form>
+
+  <!-- Footer -->
+  <div class="footer-signup">
+    Don't have an account?
+    <a href="?tab=signup" class="signup-link">Sign up</a>
+  </div>
+
+  <div class="footer-legal">
+    <span class="shield-icon">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+        <path d="M12 2L3 7v5c0 5.25 3.75 10.15 9 11.25C17.25 22.15 21 17.25 21 12V7L12 2z" fill="url(#shieldGrad)" opacity="0.9"/>
+        <defs>
+          <linearGradient id="shieldGrad" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#C8FF00"/>
+            <stop offset="100%" stop-color="#00F5A0"/>
+          </linearGradient>
+        </defs>
+      </svg>
+    </span>
+    <span>
+      By continuing, you agree to our
+      <a href="#">Terms of Service</a> and
+      <a href="#">Privacy Policy</a>.
+    </span>
+  </div>
+
+</div>
+
+<script>
+/* ── Password toggle ── */
+function togglePw() {
+  const inp     = document.getElementById('login-password');
+  const eyeOpen = document.getElementById('eye-open');
+  const eyeShut = document.getElementById('eye-closed');
+  const isHidden = inp.type === 'password';
+  inp.type       = isHidden ? 'text' : 'password';
+  eyeOpen.style.display = isHidden ? 'none'  : 'block';
+  eyeShut.style.display = isHidden ? 'block' : 'none';
+}
+
+/* ── Login handler — wires to existing auth.js if present ── */
+function handleLogin(e) {
+  e.preventDefault();
+  const id  = document.getElementById('login-id').value.trim();
+  const pw  = document.getElementById('login-password').value;
+  const age = document.getElementById('age-confirm').checked;
+  const btn = document.getElementById('login-btn');
+  const err = document.getElementById('login-alert');
+
+  err.classList.add('hidden');
+
+  if (!id || !pw) {
+    showError('Please fill in all fields.');
+    return;
+  }
+  if (!age) {
+    showError('You must confirm you are 18+ to continue.');
+    return;
+  }
+
+  /* Loading state */
+  btn.classList.add('loading');
+  btn.disabled = true;
+
+  /* Delegate to existing auth.js handleLogin if available */
+  if (typeof window._authHandleLogin === 'function') {
+    window._authHandleLogin(id, pw).finally(() => {
+      btn.classList.remove('loading');
+      btn.disabled = false;
+    });
+    return;
+  }
+
+  /* Fallback: direct localStorage check */
+  setTimeout(() => {
+    const users = JSON.parse(localStorage.getItem('playta_users') || '[]');
+    const idLow = id.toLowerCase();
+    const user  = users.find(u =>
+      u.email?.toLowerCase() === idLow ||
+      u.mobile === id.replace(/\D/g,'') ||
+      u.inGameName?.toLowerCase() === idLow
+    );
+    const hash = pw => { let h=0; for(let i=0;i<pw.length;i++){h=((h<<5)-h)+pw.charCodeAt(i);h|=0;} return 'h_'+Math.abs(h).toString(36)+'_'+pw.length; };
+
+    btn.classList.remove('loading');
+    btn.disabled = false;
+
+    if (!user || user.password !== hash(pw)) {
+      showError('Invalid email, mobile or password. Please try again.');
+      return;
+    }
+
+    localStorage.setItem('playta_user_sess', JSON.stringify({
+      uid: user.uid, email: user.email,
+      inGameName: user.inGameName, loginAt: new Date().toISOString()
+    }));
+    window.location.replace('../index.html');
+  }, 1100);
+}
+
+function showError(msg) {
+  const err  = document.getElementById('login-alert');
+  const text = document.getElementById('login-alert-text');
+  text.textContent = msg;
+  err.classList.remove('hidden');
+}
+
+function socialLogin(provider) {
+  showError('Social login coming soon. Please use email/mobile for now.');
+}
+</script>
+
+<!-- Load existing auth.js if present -->
+<script src="auth.js" onerror="console.log('auth.js not loaded separately')"></script>
+
+</body>
+</html>

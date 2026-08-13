@@ -1,0 +1,410 @@
+/* ============================================
+   PLAYTA — Login Page
+   Pixel-perfect replication of reference image
+   ============================================ */
+
+/* ── Google Fonts ── */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Bebas+Neue&display=swap');
+
+:root {
+  --bg:      #000000;
+  --card:    #0D0D0D;
+  --input:   #0A0A0A;
+  --border:  #252525;
+  --t0:      #FFFFFF;
+  --t1:      #8B949E;
+  --t2:      #555;
+  --green:   #00F5A0;
+  --cyan:    #00D9FF;
+  --red:     #FF4C4C;
+  --grad:    linear-gradient(90deg, #00F5A0 0%, #00D9FF 100%);
+  --glow-l:  #C8FF00;
+  --glow-r:  #00D9FF;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--t0);
+  font-family: 'Inter', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+button { cursor: pointer; font-family: 'Inter', sans-serif; }
+input  { font-family: 'Inter', sans-serif; }
+a { text-decoration: none; }
+
+/* ════════════════════
+   NEON EDGE LINES
+   Left = yellow-green, Right = cyan
+   ════════════════════ */
+.edge-line {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  z-index: 0;
+  pointer-events: none;
+}
+.edge-line.left {
+  left: 22px;
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    var(--glow-l) 15%,
+    var(--glow-l) 85%,
+    transparent 100%
+  );
+  box-shadow: 0 0 12px 3px rgba(200,255,0,0.4),
+              0 0 30px 6px rgba(200,255,0,0.15);
+}
+.edge-line.right {
+  right: 22px;
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    var(--glow-r) 15%,
+    var(--glow-r) 85%,
+    transparent 100%
+  );
+  box-shadow: 0 0 12px 3px rgba(0,217,255,0.4),
+              0 0 30px 6px rgba(0,217,255,0.15);
+}
+
+/* Corner notch decorations */
+.edge-line.left::before,
+.edge-line.left::after,
+.edge-line.right::before,
+.edge-line.right::after {
+  content: '';
+  position: absolute;
+  width: 16px;
+  height: 2px;
+  background: inherit;
+}
+.edge-line.left::before  { top: 12%; transform-origin: left; transform: rotate(-45deg); }
+.edge-line.left::after   { bottom: 12%; transform-origin: left; transform: rotate(45deg); }
+.edge-line.right::before { top: 12%; right: 0; transform-origin: right; transform: rotate(45deg); }
+.edge-line.right::after  { bottom: 12%; right: 0; transform-origin: right; transform: rotate(-45deg); }
+
+/* ════════════════════
+   PAGE WRAPPER
+   ════════════════════ */
+.login-page {
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 20px 24px;
+}
+
+/* ════════════════════
+   LOGO
+   ════════════════════ */
+.logo-wrap {
+  margin-bottom: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.logo-svg {
+  width: 80px;
+  height: 80px;
+  filter: drop-shadow(0 0 16px rgba(0,245,160,0.5));
+}
+
+/* ════════════════════
+   HEADING
+   ════════════════════ */
+.heading-welcome {
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--t0);
+  text-align: center;
+  margin-bottom: 2px;
+}
+.heading-gamer {
+  font-family: 'Bebas Neue', 'Inter', sans-serif;
+  font-size: 72px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--t0);
+  text-align: center;
+  line-height: 1;
+  margin-bottom: 28px;
+}
+
+/* ════════════════════
+   FORM
+   ════════════════════ */
+.login-form {
+  width: 100%;
+  max-width: 420px;
+}
+
+/* Field group */
+.field-group { margin-bottom: 16px; }
+.field-label {
+  display: block;
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--t0);
+  margin-bottom: 8px;
+}
+
+/* Input wrapper — gradient border for first, dark for second */
+.input-outer {
+  border-radius: 12px;
+  padding: 1.5px;
+  background: var(--border);
+}
+.input-outer.glow {
+  background: linear-gradient(90deg, #00F5A0 0%, #00D9FF 100%);
+  box-shadow: 0 0 14px rgba(0,245,160,0.2);
+}
+.input-inner {
+  display: flex;
+  align-items: center;
+  background: var(--input);
+  border-radius: 11px;
+  padding: 0 14px;
+  gap: 12px;
+  height: 56px;
+}
+.input-inner input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--t0);
+  font-size: 15px;
+  font-weight: 400;
+}
+.input-inner input::placeholder { color: var(--t2); }
+.input-icon { color: #555; flex-shrink: 0; display: flex; align-items: center; }
+.eye-btn {
+  background: none;
+  border: none;
+  padding: 4px;
+  color: #555;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  transition: color 0.15s;
+}
+.eye-btn:hover { color: var(--t1); }
+
+/* ════════════════════
+   ERROR BOX
+   ════════════════════ */
+.error-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(255,76,76,0.1);
+  border: 1px solid var(--red);
+  border-radius: 10px;
+  padding: 13px 16px;
+  margin-bottom: 16px;
+  font-size: 14px;
+  color: var(--red);
+  font-weight: 500;
+}
+.error-box.hidden { display: none; }
+.error-icon { flex-shrink: 0; }
+
+/* ════════════════════
+   CHECKBOXES & LINKS
+   ════════════════════ */
+.check-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.check-left  { display: flex; align-items: flex-start; gap: 10px; }
+.check-label {
+  font-size: 14px;
+  color: var(--t0);
+  cursor: pointer;
+  user-select: none;
+  line-height: 1.3;
+}
+.check-sublabel {
+  display: block;
+  font-size: 11.5px;
+  color: var(--t1);
+  margin-top: 2px;
+}
+.check-input {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  border: 1.5px solid #444;
+  background: transparent;
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+  flex-shrink: 0;
+  margin-top: 1px;
+  transition: border-color 0.15s, background 0.15s;
+  position: relative;
+}
+.check-input:checked {
+  background: var(--green);
+  border-color: var(--green);
+}
+.check-input:checked::after {
+  content: '';
+  position: absolute;
+  left: 5px; top: 2px;
+  width: 6px; height: 10px;
+  border: 2px solid #000;
+  border-top: none; border-left: none;
+  transform: rotate(45deg);
+}
+.forgot-link {
+  font-size: 14px;
+  color: var(--t0);
+  font-weight: 500;
+  white-space: nowrap;
+}
+.forgot-link:hover { color: var(--cyan); }
+.info-icon { color: #555; display: flex; align-items: center; cursor: pointer; }
+.info-icon:hover { color: var(--t1); }
+
+/* ════════════════════
+   LOGIN BUTTON
+   ════════════════════ */
+.btn-login {
+  width: 100%;
+  height: 58px;
+  background: var(--grad);
+  border: none;
+  border-radius: 12px;
+  color: #000;
+  font-size: 18px;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-top: 20px;
+  margin-bottom: 24px;
+  transition: opacity 0.2s, transform 0.15s;
+  position: relative;
+  overflow: hidden;
+}
+.btn-login::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(255,255,255,0.1);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.btn-login:hover::before { opacity: 1; }
+.btn-login:active { transform: scale(0.98); }
+.btn-login:disabled {
+  opacity: 0.6;
+  pointer-events: none;
+}
+.btn-login.loading .btn-text { display: none; }
+.btn-spinner {
+  display: none;
+  width: 22px; height: 22px;
+  border: 2px solid rgba(0,0,0,0.2);
+  border-top-color: #000;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  margin: 0 auto;
+}
+.btn-login.loading .btn-spinner { display: block; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ════════════════════
+   OR DIVIDER
+   ════════════════════ */
+.or-divider {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 16px;
+  color: var(--t2);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+}
+.or-divider::before, .or-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: #252525;
+}
+
+/* ════════════════════
+   SOCIAL BUTTONS
+   ════════════════════ */
+.social-btn {
+  width: 100%;
+  height: 54px;
+  background: #0D0D0D;
+  border: 1px solid #252525;
+  border-radius: 12px;
+  color: var(--t0);
+  font-size: 15px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  margin-bottom: 12px;
+  transition: border-color 0.2s, background 0.2s;
+}
+.social-btn:hover { background: #161616; border-color: #333; }
+.social-btn:last-child { margin-bottom: 0; }
+.social-icon { width: 26px; height: 26px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+
+/* ════════════════════
+   FOOTER
+   ════════════════════ */
+.footer-signup {
+  text-align: center;
+  font-size: 14.5px;
+  color: var(--t1);
+  margin-top: 24px;
+  margin-bottom: 18px;
+}
+.footer-signup .signup-link {
+  color: var(--cyan);
+  font-weight: 600;
+  cursor: pointer;
+}
+.footer-signup .signup-link:hover { text-decoration: underline; }
+.footer-legal {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--t2);
+  text-align: center;
+  line-height: 1.5;
+}
+.footer-legal a { color: var(--cyan); }
+.footer-legal a:hover { text-decoration: underline; }
+.shield-icon { flex-shrink: 0; }
+
+/* ════════════════════
+   RESPONSIVE
+   ════════════════════ */
+@media (max-width: 480px) {
+  .heading-gamer { font-size: 56px; }
+  .edge-line.left  { left: 10px; }
+  .edge-line.right { right: 10px; }
+}
