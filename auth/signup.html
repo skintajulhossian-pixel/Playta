@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="PLAYTA – Create your esports account">
+  <title>PLAYTA · Sign Up</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="auth-card">
+
+    <!-- LOGO — images/ folder is at root, auth/ se ../ se access -->
+    <div class="logo-wrap">
+      <img src="../images/playta-logo.png" alt="Logo" class="main-logo">
+    </div>
+
+    <!-- Header -->
+    <div class="hdr">
+      <h1 class="hdr-title">Create Account</h1>
+      <p class="hdr-subtitle">Join the arena. Start competing today.</p>
+    </div>
+
+    <!-- Sign-up Form -->
+    <form id="signupForm" novalidate>
+
+      <!-- Full Name -->
+      <div class="form-group">
+        <label class="form-label" for="fullName">Full Name</label>
+        <div class="input-wrap">
+          <span class="input-icon">
+            <svg width="15" height="15" viewBox="0 0 24 24"
+                 fill="none" stroke="currentColor"
+                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+              <circle cx="12" cy="7" r="4"/>
+            </svg>
+          </span>
+          <input
+            type="text"
+            id="fullName"
+            class="form-input"
+            placeholder="Enter your full name"
+            autocomplete="name"
+          >
+        </div>
+      </div>
+
+      <!-- Email -->
+      <div class="form-group">
+        <label class="form-label" for="signupEmail">Email</label>
+        <div class="input-wrap">
+          <span class="input-icon">
+            <svg width="15" height="15" viewBox="0 0 24 24"
+                 fill="none" stroke="currentColor"
+                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4
+                       c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+              <polyline points="22,6 12,13 2,6"/>
+            </svg>
+          </span>
+          <input
+            type="email"
+            id="signupEmail"
+            class="form-input"
+            placeholder="Enter your email address"
+            autocomplete="email"
+          >
+        </div>
+      </div>
+
+      <!-- Password -->
+      <div class="form-group last">
+        <label class="form-label" for="signupPwd">Password</label>
+        <div class="input-wrap">
+          <span class="input-icon">
+            <svg width="15" height="15" viewBox="0 0 24 24"
+                 fill="none" stroke="currentColor"
+                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="11" width="18" height="11" rx="2"/>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+          </span>
+          <input
+            type="password"
+            id="signupPwd"
+            class="form-input has-toggle"
+            placeholder="Create a password"
+            autocomplete="new-password"
+          >
+          <button
+            type="button"
+            class="eye-btn"
+            data-toggle-pwd="signupPwd"
+            aria-label="Show password"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24"
+                 fill="none" stroke="currentColor"
+                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+              <circle cx="12" cy="12" r="3"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- CREATE ACCOUNT button -->
+      <button type="submit" class="btn-primary">CREATE ACCOUNT</button>
+
+    </form>
+
+    <!-- OR Divider -->
+    <div class="or-divider">OR</div>
+
+    <!-- SOCIAL ICONS — ../images/ se access -->
+    <div class="social-row">
+      <button class="social-btn" type="button" aria-label="Continue with Google">
+        <img src="../images/google.png" alt="Google" class="social-icon">
+      </button>
+      <button class="social-btn" type="button" aria-label="Continue with Facebook">
+        <img src="../images/facebook.png" alt="Facebook" class="social-icon">
+      </button>
+      <button class="social-btn" type="button" aria-label="Continue with Apple">
+        <img src="../images/apple.png" alt="Apple" class="social-icon">
+      </button>
+    </div>
+
+    <!-- Footer -->
+    <p class="footer-text">
+      Already have an account?&nbsp;<a href="index.html" class="footer-link">Sign In</a>
+    </p>
+
+  </div>
+
+  <script src="auth.js"></script>
+</body>
+</html>

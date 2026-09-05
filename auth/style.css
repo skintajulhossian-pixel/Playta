@@ -1,0 +1,402 @@
+/* ══════════════════════════════════════════
+   PLAYTA — Auth Shared Stylesheet
+   style.css
+══════════════════════════════════════════ */
+
+/* ── Google Fonts ── */
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Inter:wght@400;500;600;700;800&display=swap');
+
+/* ── Reset ── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+button  { font-family: inherit; cursor: pointer; }
+a       { text-decoration: none; }
+
+/* ── Design Tokens ── */
+:root {
+  --bg:        #000000;
+  --surface:   #0A0A0A;
+  --input-bg:  #0D0D0D;
+  --border:    #252D38;
+  --t0:        #FFFFFF;
+  --t1:        #8B949E;
+  --green:     #11FF66;
+  --cyan:      #00E5FF;
+  --grad:      linear-gradient(90deg, #11FF66 0%, #00E5FF 100%);
+  --glow:      0px 4px 15px rgba(17, 255, 102, 0.4);
+  --r-lg:      18px;
+  --r-md:      12px;
+  --r-sm:      8px;
+}
+
+/* ── Base ── */
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background-color: var(--bg);
+  /*
+    Extremely subtle ambient tint on the page background only.
+    NO borders, NO card glow — clean like Image 1.
+  */
+  background-image:
+    radial-gradient(ellipse 500px 900px at -2% 45%,
+      rgba(17, 255, 102, 0.025) 0%, transparent 55%),
+    radial-gradient(ellipse 500px 900px at 102% 55%,
+      rgba(0, 229, 255, 0.025) 0%, transparent 55%);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 16px;
+  font-family: 'Inter', sans-serif;
+  color: var(--t0);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Auth Card
+   Clean dark container — thin border only, no glow, no accents.
+   This follows Image 1's minimal card aesthetic.
+── */
+.auth-card {
+  width: 100%;
+  max-width: 420px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: 44px 36px 40px;
+  animation: fadeUp 0.28s ease both;
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ────────────────────────────────
+   LOGO
+──────────────────────────────── */
+.logo-wrap {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 22px;
+}
+
+.main-logo {
+  width: 72px;
+  height: 72px;
+  object-fit: contain;
+  display: block;
+}
+
+/* ────────────────────────────────
+   HEADERS
+──────────────────────────────── */
+.hdr {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+/* Login page: small eyebrow + massive hero */
+.hdr-eyebrow {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 5px;
+  text-transform: uppercase;
+  color: var(--t1);
+  margin-bottom: 4px;
+}
+
+.hdr-hero {
+  font-family: 'Orbitron', monospace;
+  font-size: 46px;
+  font-weight: 900;
+  letter-spacing: 6px;
+  color: var(--t0);
+  line-height: 1;
+}
+
+/* Signup page: "Create Account" style (Image 4) */
+.hdr-title {
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+  color: var(--t0);
+  margin-bottom: 6px;
+}
+
+.hdr-subtitle {
+  font-size: 14px;
+  color: var(--t1);
+  line-height: 1.5;
+}
+
+/* ────────────────────────────────
+   FORM GROUPS
+──────────────────────────────── */
+.form-group {
+  margin-bottom: 16px;
+}
+
+/* Adds extra space before the submit button */
+.form-group.last {
+  margin-bottom: 28px;
+}
+
+.form-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--t1);
+  margin-bottom: 8px;
+}
+
+/* ────────────────────────────────
+   INPUT FIELDS
+──────────────────────────────── */
+.input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-icon {
+  position: absolute;
+  left: 14px;
+  color: var(--t1);
+  display: flex;
+  align-items: center;
+  pointer-events: none;
+  line-height: 0;
+}
+
+.form-input {
+  width: 100%;
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: 13px 14px 13px 44px;
+  font-size: 14px;
+  font-family: 'Inter', sans-serif;
+  color: var(--t0);
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  -webkit-appearance: none;
+}
+
+/* Extra right padding when the eye toggle is present */
+.form-input.has-toggle {
+  padding-right: 44px;
+}
+
+.form-input::placeholder {
+  color: #3f4a57;
+}
+
+.form-input:focus {
+  border-color: var(--green);
+  box-shadow: 0 0 0 3px rgba(17, 255, 102, 0.08);
+}
+
+/* ────────────────────────────────
+   PASSWORD EYE TOGGLE
+──────────────────────────────── */
+.eye-btn {
+  position: absolute;
+  right: 12px;
+  background: none;
+  border: none;
+  color: var(--t1);
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  border-radius: 4px;
+  transition: color 0.18s ease;
+  line-height: 0;
+}
+
+.eye-btn:hover {
+  color: var(--t0);
+}
+
+/* ────────────────────────────────
+   OPTIONS ROW  (Remember me + Forgot)
+──────────────────────────────── */
+.options-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.check-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--t1);
+  cursor: pointer;
+  user-select: none;
+}
+
+.check-label input[type="checkbox"] {
+  width: 14px;
+  height: 14px;
+  accent-color: var(--green);
+  cursor: pointer;
+}
+
+.forgot-link {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--cyan);
+  transition: opacity 0.18s ease;
+}
+
+.forgot-link:hover {
+  opacity: 0.7;
+}
+
+/* ────────────────────────────────
+   PRIMARY BUTTON
+   Gradient from Image 3 JOIN MATCH button.
+   Only element on the page that uses the gradient.
+──────────────────────────────── */
+.btn-primary {
+  display: block;
+  width: 100%;
+  padding: 15px;
+  background: var(--grad);
+  box-shadow: var(--glow);
+  border: none;
+  border-radius: var(--r-md);
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: #000000;
+  transition: opacity 0.18s ease, transform 0.12s ease;
+}
+
+.btn-primary:hover  { opacity: 0.88; }
+.btn-primary:active { transform: scale(0.976); }
+
+/* ────────────────────────────────
+   OR DIVIDER
+──────────────────────────────── */
+.or-divider {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 26px 0;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: var(--t1);
+}
+
+.or-divider::before,
+.or-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+/* ────────────────────────────────
+   SOCIAL ICONS ROW  (Image 1 / Image 4 layout)
+──────────────────────────────── */
+.social-row {
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+  margin-bottom: 30px;
+}
+
+.social-btn {
+  width: 52px;
+  height: 52px;
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: border-color 0.18s ease, background 0.18s ease;
+}
+
+.social-btn:hover {
+  border-color: rgba(17, 255, 102, 0.45);
+  background: #131b22;
+}
+
+.social-icon {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  display: block;
+  /*
+    Fixed dimensions so the 52×52 button never
+    collapses while waiting for the PNG to load.
+  */
+  min-width: 24px;
+  min-height: 24px;
+}
+
+/* ────────────────────────────────
+   FOOTER TEXT
+──────────────────────────────── */
+.footer-text {
+  text-align: center;
+  font-size: 13px;
+  color: var(--t1);
+}
+
+.footer-link {
+  color: var(--cyan);
+  font-weight: 700;
+  transition: opacity 0.18s ease;
+}
+
+.footer-link:hover {
+  opacity: 0.72;
+}
+
+/* ────────────────────────────────
+   RESPONSIVE
+──────────────────────────────── */
+@media (max-width: 480px) {
+  body {
+    padding: 20px 14px;
+  }
+
+  .auth-card {
+    padding: 36px 22px 32px;
+    border-radius: 14px;
+  }
+
+  .hdr-hero {
+    font-size: 36px;
+    letter-spacing: 4px;
+  }
+
+  .hdr-title {
+    font-size: 22px;
+  }
+
+  .main-logo {
+    width: 60px;
+    height: 60px;
+  }
+}
