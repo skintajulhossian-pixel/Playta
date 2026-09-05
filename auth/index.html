@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="PLAYTA – Login to your esports account">
+  <title>PLAYTA · Login</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="auth-card">
+
+    <!-- Logo — 1:1 ratio, 80×80, border-radius via CSS -->
+    <div class="logo-wrap">
+      <img src="../assets/playta-logo.png" alt="PLAYTA Logo" class="main-logo">
+    </div>
+
+    <!-- Header -->
+    <div class="hdr">
+      <p class="hdr-eyebrow">Welcome Back</p>
+      <h1 class="hdr-hero">GAMER</h1>
+    </div>
+
+    <!-- Login Form -->
+    <form id="loginForm" novalidate>
+
+      <!-- Identifier -->
+      <div class="form-group">
+        <label class="form-label" for="loginIdent">Email, mobile or username</label>
+        <div class="input-wrap">
+          <span class="input-icon">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+              <circle cx="12" cy="7" r="4"/>
+            </svg>
+          </span>
+          <input type="text" id="loginIdent" class="form-input"
+                 placeholder="Enter your email, mobile or username"
+                 autocomplete="username">
+        </div>
+      </div>
+
+      <!-- Password -->
+      <div class="form-group">
+        <label class="form-label" for="loginPwd">Password</label>
+        <div class="input-wrap">
+          <span class="input-icon">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="11" width="18" height="11" rx="2"/>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+          </span>
+          <input type="password" id="loginPwd" class="form-input has-toggle"
+                 placeholder="Enter your password"
+                 autocomplete="current-password">
+          <button type="button" class="eye-btn"
+                  data-toggle-pwd="loginPwd" aria-label="Show password">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+              <circle cx="12" cy="12" r="3"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Remember + Forgot -->
+      <div class="options-row">
+        <label class="check-label">
+          <input type="checkbox" id="rememberMe"> Remember me
+        </label>
+        <a href="#" class="forgot-link">Forgot password?</a>
+      </div>
+
+      <button type="submit" class="btn-primary">LOGIN</button>
+
+    </form>
+
+    <!-- OR -->
+    <div class="or-divider">OR</div>
+
+    <!-- Social Icons -->
+    <div class="social-row">
+      <button class="social-btn" type="button" aria-label="Google">
+        <img src="../assets/google.png" alt="Google" class="social-icon">
+      </button>
+      <button class="social-btn" type="button" aria-label="Facebook">
+        <img src="../assets/facebook.png" alt="Facebook" class="social-icon">
+      </button>
+      <button class="social-btn" type="button" aria-label="Apple">
+        <img src="../assets/apple.png" alt="Apple" class="social-icon">
+      </button>
+    </div>
+
+    <!-- Footer -->
+    <p class="footer-text">
+      Don't have an account?&nbsp;<a href="signup.html" class="footer-link">Sign up</a>
+    </p>
+
+  </div>
+
+  <script src="auth.js"></script>
+</body>
+</html>
