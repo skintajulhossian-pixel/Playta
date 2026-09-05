@@ -1,0 +1,424 @@
+/* ══════════════════════════════════════════
+   PLAYTA — Auth Shared Stylesheet
+   style.css
+══════════════════════════════════════════ */
+
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Inter:wght@400;500;600;700;800&display=swap');
+
+/* ── Reset ── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+button { font-family: inherit; cursor: pointer; }
+a      { text-decoration: none; }
+
+/* ── Design Tokens ── */
+:root {
+  --bg:       #000000;
+  --surface:  #0A0A0A;
+  --input-bg: #111111;
+  --border:   #252D38;
+  --t0:       #FFFFFF;
+  --t1:       #8B949E;
+  --green:    #11FF66;
+  --cyan:     #00E5FF;
+  --grad:     linear-gradient(90deg, #11FF66 0%, #00E5FF 100%);
+  --glow:     0px 4px 15px rgba(17, 255, 102, 0.4);
+  --r-md:     12px;
+  --r-sm:     8px;
+}
+
+/* ── Base ── */
+html {
+  min-height: 100%;
+}
+
+body {
+  background-color: var(--bg);
+  min-height: 100vh;
+  font-family: 'Inter', sans-serif;
+  color: var(--t0);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  /* Desktop: center the card */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 16px;
+}
+
+/* ════════════════════════════════
+   AUTH CARD
+   Desktop = floating card
+   Mobile  = full screen (no borders)
+════════════════════════════════ */
+.auth-card {
+  width: 100%;
+  max-width: 460px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 48px 36px 40px;
+  animation: fadeUp 0.28s ease both;
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── MOBILE: Full-screen app feel ── */
+@media (max-width: 520px) {
+  body {
+    display: block;   /* remove flex centering */
+    padding: 0;
+    background: var(--bg);
+  }
+
+  .auth-card {
+    min-height: 100vh;
+    max-width: 100%;
+    background: #000000;
+    border: none;
+    border-radius: 0;
+    padding: 40px 24px;
+    animation: none;
+    /* Center content vertically within full screen */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+}
+
+/* ════════════════════════════════
+   LOGO
+════════════════════════════════ */
+.logo-wrap {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 24px;
+}
+
+/* 1:1 ratio enforced — no border, no radius */
+.main-logo {
+  width: 118px;
+  height: 118px;
+  object-fit: contain;
+  display: block;
+  border-radius: 0;
+  background: transparent;
+}
+
+/* ════════════════════════════════
+   HEADERS
+════════════════════════════════ */
+.hdr {
+  text-align: center;
+  margin-bottom: 36px;
+}
+
+/* Login: "WELCOME BACK" eyebrow */
+.hdr-eyebrow {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 5px;
+  text-transform: uppercase;
+  color: var(--t1);
+  margin-bottom: 4px;
+}
+
+/* Login: "GAMER" hero */
+.hdr-hero {
+  font-family: 'Orbitron', monospace;
+  font-size: 46px;
+  font-weight: 900;
+  letter-spacing: 6px;
+  color: var(--t0);
+  line-height: 1;
+}
+
+@media (max-width: 520px) {
+  .hdr-hero { font-size: 38px; letter-spacing: 4px; }
+}
+
+/* Signup: "Create your account" */
+.hdr-title {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--t0);
+  margin-bottom: 8px;
+  letter-spacing: -0.2px;
+}
+
+.hdr-subtitle {
+  font-size: 14px;
+  color: var(--t1);
+  line-height: 1.5;
+}
+
+/* ════════════════════════════════
+   FORM GROUPS & INPUTS
+════════════════════════════════ */
+.form-group {
+  margin-bottom: 14px;
+}
+
+.form-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--t1);
+  margin-bottom: 8px;
+}
+
+.input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-icon {
+  position: absolute;
+  left: 14px;
+  color: var(--t1);
+  display: flex;
+  align-items: center;
+  pointer-events: none;
+  line-height: 0;
+}
+
+.form-input {
+  width: 100%;
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: 13px 14px 13px 44px;
+  font-size: 14px;
+  font-family: 'Inter', sans-serif;
+  color: var(--t0);
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  -webkit-appearance: none;
+}
+
+.form-input.has-toggle { padding-right: 44px; }
+
+.form-input::placeholder { color: #3f4a57; }
+
+.form-input:focus {
+  border-color: var(--green);
+  box-shadow: 0 0 0 3px rgba(17, 255, 102, 0.08);
+}
+
+/* Phone input: no left icon, normal padding */
+.form-input.no-icon {
+  padding-left: 14px;
+}
+
+/* ── Eye Toggle ── */
+.eye-btn {
+  position: absolute;
+  right: 12px;
+  background: none;
+  border: none;
+  color: var(--t1);
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  border-radius: 4px;
+  line-height: 0;
+  transition: color 0.18s ease;
+}
+.eye-btn:hover { color: var(--t0); }
+
+/* ════════════════════════════════
+   OPTIONS ROW (login only)
+════════════════════════════════ */
+.options-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.check-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--t1);
+  cursor: pointer;
+  user-select: none;
+}
+
+.check-label input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--green);
+  cursor: pointer;
+}
+
+.forgot-link {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--cyan);
+  transition: opacity 0.18s;
+}
+.forgot-link:hover { opacity: 0.7; }
+
+/* ════════════════════════════════
+   CHECKBOX GROUP (signup)
+════════════════════════════════ */
+.check-group {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 28px;
+  margin-top: 6px;
+}
+
+.check-item {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.check-item input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  min-width: 18px;
+  accent-color: var(--green);
+  margin-top: 2px;
+  cursor: pointer;
+}
+
+.check-content {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.check-main {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--t0);
+  cursor: pointer;
+  line-height: 1.4;
+}
+
+/* "PLAYTA is available only to..." */
+.check-sub {
+  font-size: 12px;
+  color: var(--t1);
+  line-height: 1.4;
+}
+
+/* Terms link inside checkbox text */
+.terms-link {
+  color: var(--cyan);
+  font-weight: 600;
+}
+.terms-link:hover { opacity: 0.75; }
+
+/* ════════════════════════════════
+   PRIMARY BUTTON
+════════════════════════════════ */
+.btn-primary {
+  display: block;
+  width: 100%;
+  padding: 15px;
+  background: var(--grad);
+  box-shadow: var(--glow);
+  border: none;
+  border-radius: var(--r-md);
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: #000000;
+  transition: opacity 0.18s ease, transform 0.12s ease;
+}
+.btn-primary:hover  { opacity: 0.88; }
+.btn-primary:active { transform: scale(0.976); }
+
+/* Spacing helper before button */
+.mb-btn { margin-bottom: 28px; }
+
+/* ════════════════════════════════
+   OR DIVIDER
+════════════════════════════════ */
+.or-divider {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 26px 0;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: var(--t1);
+}
+.or-divider::before,
+.or-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+/* ════════════════════════════════
+   SOCIAL ROW
+════════════════════════════════ */
+.social-row {
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+  margin-bottom: 30px;
+}
+
+.social-btn {
+  width: 54px;
+  height: 54px;
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: border-color 0.18s ease, background 0.18s ease;
+}
+.social-btn:hover {
+  border-color: rgba(17, 255, 102, 0.45);
+  background: #141920;
+}
+
+.social-icon {
+  width: 26px;
+  height: 26px;
+  object-fit: contain;
+  display: block;
+  min-width: 26px;
+  min-height: 26px;
+}
+
+/* ════════════════════════════════
+   FOOTER TEXT
+════════════════════════════════ */
+.footer-text {
+  text-align: center;
+  font-size: 13px;
+  color: var(--t1);
+}
+
+.footer-link {
+  color: var(--cyan);
+  font-weight: 700;
+  transition: opacity 0.18s;
+}
+.footer-link:hover { opacity: 0.72; }
