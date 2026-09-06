@@ -1454,7 +1454,7 @@ function renderRoomBox(m) {
     return `
       <div class="mm-room-box state-unjoined" data-match-id="${m.matchId}" data-starts-at="${m.startsAt}" data-joined="false">
         <div class="mm-room-locked">
-          <span class="mm-room-lock-icon">🔒</span>
+          <span class="mm-room-lock-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
           <span class="mm-room-locked-text">Join the match to unlock Room ID &amp; Password.</span>
         </div>
       </div>`;
@@ -1463,7 +1463,7 @@ function renderRoomBox(m) {
   return `
     <div class="mm-room-box state-joined" id="room-${roomKey}" data-match-id="${m.matchId}" data-starts-at="${m.startsAt}" data-joined="true">
       <div class="mm-room-locked">
-        <span class="mm-room-lock-icon">🔒</span>
+        <span class="mm-room-lock-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
         <span class="mm-room-locked-text">You are registered! Room details will be revealed exactly 1 minute before the match.</span>
       </div>
       <div class="mm-room-unlocked">
