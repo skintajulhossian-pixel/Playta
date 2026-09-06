@@ -1154,21 +1154,43 @@ function buildPaidMatchCard(t) {
 
 /* Wires up the "Join Match" buttons inside any container that was
    filled using buildMatchCardHtml (Home featured list or the
-   full Tournament List). Re-renders both lists on success so
-   they never fall out of sync. */
+   full Tournament List). Navigates to join.html with match data
+   saved in localStorage so the slot system loads correctly. */
 function bindMatchJoinButtons(container, onJoinedRerender) {
   container.querySelectorAll('.match-join-btn-small:not(.full):not(.registered)').forEach((btn) => {
     btn.addEventListener('click', (event) => {
       event.preventDefault();
       event.stopPropagation();
 
-      const card = btn.closest('.match-card');
+      const card    = btn.closest('.match-card');
       const matchId = card.dataset.matchId;
-      const match = tournaments.find((t) => t.matchId === matchId);
+      const match   = tournaments.find((t) => t.matchId === matchId);
       if (!match) return;
 
-      const success = payAndRegister(match);
-      if (success) onJoinedRerender();
+      /* ── 1. Save selectedMatchId for join.html ── */
+      localStorage.setItem('selectedMatchId', match.matchId);
+
+      /* ── 2. Build match in format join.html expects ──
+              join.html reads: id, matchType, title, entryFee  */
+      const matchForJoin = {
+        id:         match.matchId,
+        matchType:  match.type,
+        title:      'Free Fire Max - Match ' + match.matchId,
+        entryFee:   match.entryFee,
+        totalSlots: match.totalSlots
+      };
+
+      /* ── 3. Save to upcoming_matches ── */
+      let upcoming = [];
+      try { upcoming = JSON.parse(localStorage.getItem('upcoming_matches')) || []; } catch (e) {}
+      const idx = upcoming.findIndex((m) => m.id === match.matchId);
+      if (idx >= 0) upcoming[idx] = matchForJoin;
+      else upcoming.push(matchForJoin);
+      localStorage.setItem('upcoming_matches', JSON.stringify(upcoming));
+
+      /* ── 4. Navigate to slot selection page ── */
+      localStorage.setItem('returnToList', '1');
+      window.location.href = 'join.html';
     });
   });
 
