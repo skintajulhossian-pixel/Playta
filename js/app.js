@@ -978,7 +978,46 @@ const tournaments = [
   }
 ];
 
-/* Builds the HTML for one match card. Shared by the Home page
+/* ── Load admin-created matches from localStorage ──
+   Admin panel saves matches to 'upcoming_matches'.
+   This converts them to the same format as the
+   hardcoded tournaments array so render functions
+   work without any changes.
+   ─────────────────────────────────────────────── */
+function loadAdminMatches() {
+  try {
+    const raw = localStorage.getItem('upcoming_matches');
+    if (!raw) return [];
+    const adminMatches = JSON.parse(raw) || [];
+    return adminMatches.map((m) => ({
+      matchId:        m.id,
+      type:           m.matchType || 'Solo',
+      matchTitle:     (m.rules || (m.matchType + ' - ' + (m.map || 'Bermuda') + ' Map')),
+      time:           new Date(m.date || Date.now()).toLocaleString('en-IN'),
+      startsAt:       m.date || (Date.now() + 3600000),
+      totalPrizePool: m.prizePool  || 0,
+      perKillPrize:   m.perKill    || 0,
+      entryFee:       m.entryFee   || 0,
+      totalSlots:     m.totalSlots || 48,
+      joinedSlots:    m.joinedSlots|| 0,
+      isJoined:       false,
+      category:       m.category   || 'daily',
+      roomId:         m.roomId     || '',
+      roomPassword:   m.roomPass   || ''
+    }));
+  } catch (e) {
+    console.warn('Admin matches load error:', e);
+    return [];
+  }
+}
+
+/* ── Merged tournament list ──
+   Combines hardcoded demo matches + admin-created matches.
+   All render functions use this instead of raw `tournaments`.
+   ─────────────────────────────────────────────────────── */
+function getAllTournaments() {
+  return [...tournaments, ...loadAdminMatches()];
+}
    featured list and the full Tournament List View so both use
    the exact same visual design.
 
@@ -1154,43 +1193,21 @@ function buildPaidMatchCard(t) {
 
 /* Wires up the "Join Match" buttons inside any container that was
    filled using buildMatchCardHtml (Home featured list or the
-   full Tournament List). Navigates to join.html with match data
-   saved in localStorage so the slot system loads correctly. */
+   full Tournament List). Re-renders both lists on success so
+   they never fall out of sync. */
 function bindMatchJoinButtons(container, onJoinedRerender) {
   container.querySelectorAll('.match-join-btn-small:not(.full):not(.registered)').forEach((btn) => {
     btn.addEventListener('click', (event) => {
       event.preventDefault();
       event.stopPropagation();
 
-      const card    = btn.closest('.match-card');
+      const card = btn.closest('.match-card');
       const matchId = card.dataset.matchId;
-      const match   = tournaments.find((t) => t.matchId === matchId);
+      const match   = getAllTournaments().find((t) => t.matchId === matchId);
       if (!match) return;
 
-      /* ── 1. Save selectedMatchId for join.html ── */
-      localStorage.setItem('selectedMatchId', match.matchId);
-
-      /* ── 2. Build match in format join.html expects ──
-              join.html reads: id, matchType, title, entryFee  */
-      const matchForJoin = {
-        id:         match.matchId,
-        matchType:  match.type,
-        title:      'Free Fire Max - Match ' + match.matchId,
-        entryFee:   match.entryFee,
-        totalSlots: match.totalSlots
-      };
-
-      /* ── 3. Save to upcoming_matches ── */
-      let upcoming = [];
-      try { upcoming = JSON.parse(localStorage.getItem('upcoming_matches')) || []; } catch (e) {}
-      const idx = upcoming.findIndex((m) => m.id === match.matchId);
-      if (idx >= 0) upcoming[idx] = matchForJoin;
-      else upcoming.push(matchForJoin);
-      localStorage.setItem('upcoming_matches', JSON.stringify(upcoming));
-
-      /* ── 4. Navigate to slot selection page ── */
-      localStorage.setItem('returnToList', '1');
-      window.location.href = 'join.html';
+      const success = payAndRegister(match);
+      if (success) onJoinedRerender();
     });
   });
 
@@ -1201,12 +1218,15 @@ function renderPaidTournaments() {
   const scrollEl = document.getElementById('tlistScroll');
   if (!scrollEl) return;
 
-  // The full Tournament List (Free Fire Max screen) shows only
-  // paid matches — the free/mega draws live on the Home page.
-  scrollEl.innerHTML = tournaments
-    .filter((t) => t.entryFee > 0)
-    .map((t) => buildPaidMatchCard(t))
-    .join('');
+  /* FREE FIRE LIST → Daily Tournaments only
+     - Admin-created: category === 'daily'
+     - Hardcoded (no category): entryFee > 0 fallback */
+  const matches = getAllTournaments()
+    .filter((t) => t.category ? t.category === 'daily' : t.entryFee > 0);
+
+  scrollEl.innerHTML = matches.length
+    ? matches.map((t) => buildPaidMatchCard(t)).join('')
+    : '<p style="color:#8B949E;text-align:center;padding:40px 20px;font-size:14px">No Daily Tournaments right now.<br>Check back soon!</p>';
 
   bindMatchJoinButtons(scrollEl, () => {
     renderPaidTournaments();
@@ -1224,17 +1244,17 @@ function renderHomeTournaments() {
   const listEl = document.getElementById('homeFeaturedList');
   if (!listEl) return;
 
-  // Home page shows only free-entry tournaments — the big draws
-  // meant to attract new players. Paid matches stay in the full
-  // Tournament List, reached via the Free Fire Max game tile.
-  const featured = tournaments
-    .filter((t) => t.entryFee === 0)
+  /* HOME PAGE → Mega Tournaments only
+     - Admin-created: category === 'mega'
+     - Hardcoded (no category): entryFee === 0 fallback */
+  const featured = getAllTournaments()
+    .filter((t) => t.category ? t.category === 'mega' : t.entryFee === 0)
     .sort((a, b) => a.startsAt - b.startsAt)
-    .slice(0, 2);
+    .slice(0, 10);
 
-  listEl.innerHTML = featured
-    .map((t) => buildFreeMatchCard(t))
-    .join('');
+  listEl.innerHTML = featured.length
+    ? featured.map((t) => buildFreeMatchCard(t)).join('')
+    : '<p style="color:#8B949E;text-align:center;padding:40px 20px;font-size:14px">No Mega Tournaments right now.<br>Check back soon!</p>';
 
   bindMatchJoinButtons(listEl, () => {
     renderHomeTournaments();
@@ -1454,7 +1474,7 @@ function renderRoomBox(m) {
     return `
       <div class="mm-room-box state-unjoined" data-match-id="${m.matchId}" data-starts-at="${m.startsAt}" data-joined="false">
         <div class="mm-room-locked">
-          <span class="mm-room-lock-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
+          <span class="mm-room-lock-icon">🔒</span>
           <span class="mm-room-locked-text">Join the match to unlock Room ID &amp; Password.</span>
         </div>
       </div>`;
@@ -1463,7 +1483,7 @@ function renderRoomBox(m) {
   return `
     <div class="mm-room-box state-joined" id="room-${roomKey}" data-match-id="${m.matchId}" data-starts-at="${m.startsAt}" data-joined="true">
       <div class="mm-room-locked">
-        <span class="mm-room-lock-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
+        <span class="mm-room-lock-icon">🔒</span>
         <span class="mm-room-locked-text">You are registered! Room details will be revealed exactly 1 minute before the match.</span>
       </div>
       <div class="mm-room-unlocked">
