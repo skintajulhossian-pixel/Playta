@@ -1,0 +1,1245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PLAYTA — Admin Panel</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════
+     ADMIN AUTH SYSTEM
+══════════════════════════════════════ -->
+<div id="adminLoginOverlay" class="login-overlay">
+  <div class="login-card">
+
+    <div class="login-brand">
+      <img src="../assets/playta-logo.png" alt="PLAYTA" class="login-logo">
+      <p class="login-eyebrow">Welcome Back</p>
+      <h1 class="login-title">ADMIN</h1>
+    </div>
+
+    <!-- Step indicator -->
+    <div class="step-indicator">
+      <span class="step-dot active" id="dot1"></span>
+      <span class="step-line"></span>
+      <span class="step-dot" id="dot2"></span>
+    </div>
+
+    <!-- STEP 1: Email + Password -->
+    <div id="loginStep1" class="login-step active">
+      <div id="rateLimitBanner" class="rate-limit-banner hidden">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <span>Too many attempts. Try again in <strong id="lockCountdown">15:00</strong></span>
+      </div>
+
+      <form id="adminLoginForm" novalidate>
+        <input type="text" name="website" id="honeypot" style="display:none" tabindex="-1" autocomplete="off">
+
+        <div class="lf-group">
+          <label class="lf-label">Email Address</label>
+          <div class="lf-wrap">
+            <span class="lf-icon">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            </span>
+            <input type="email" id="adminEmail" class="lf-input" placeholder="Enter admin email" autocomplete="email">
+          </div>
+        </div>
+
+        <div class="lf-group">
+          <label class="lf-label">Password</label>
+          <div class="lf-wrap">
+            <span class="lf-icon">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            </span>
+            <input type="password" id="adminPass" class="lf-input has-eye" placeholder="Enter your password" autocomplete="current-password">
+            <button type="button" class="lf-eye" id="adminEyeBtn">
+              <svg id="adminEyeIco" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <div id="attemptWarn" class="attempt-warn hidden"></div>
+        <div id="loginError" class="login-error hidden"></div>
+
+        <div class="lf-forgot-row">
+          <button type="button" class="lf-forgot" id="forgotPassBtn">Forgot password?</button>
+        </div>
+
+        <button type="submit" class="btn-login" id="loginSubmitBtn">CONTINUE →</button>
+      </form>
+
+      <div class="role-chips-row">
+        <span class="role-chip chip-super">Super Admin</span>
+        <span class="role-chip chip-admin">Admin</span>
+        <span class="role-chip chip-mod">Moderator</span>
+      </div>
+    </div>
+
+    <!-- STEP 2: 2FA OTP -->
+    <div id="loginStep2" class="login-step">
+      <div class="otp-header">
+        <div class="otp-shield">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </div>
+        <h3>2FA Verification</h3>
+        <p>OTP sent to <strong id="otpEmailDisplay"></strong></p>
+        <p class="otp-demo" id="otpDemoHint"></p>
+      </div>
+
+      <div class="otp-inputs" id="otpInputs">
+        <input class="otp-digit" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]">
+        <input class="otp-digit" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]">
+        <input class="otp-digit" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]">
+        <input class="otp-digit" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]">
+        <input class="otp-digit" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]">
+        <input class="otp-digit" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]">
+      </div>
+
+      <div id="otpError" class="login-error hidden"></div>
+      <button class="btn-login" id="verifyOtpBtn">VERIFY OTP</button>
+
+      <div class="otp-actions">
+        <button class="lf-forgot" id="resendOtpBtn">Resend OTP <span id="resendTimer">(30s)</span></button>
+        <button class="lf-forgot" id="backToLoginBtn">← Back</button>
+      </div>
+    </div>
+
+    <p class="admin-note">🔒 Unauthorized access is strictly prohibited</p>
+  </div>
+</div>
+
+<!-- FORGOT PASSWORD OVERLAY -->
+<div id="forgotOverlay" class="forgot-overlay hidden">
+  <div class="forgot-card">
+    <button class="forgot-close-btn" id="closeForgotBtn">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+    <div class="forgot-icon-wrap">🔐</div>
+    <h3>Reset Admin Password</h3>
+    <p>Enter your admin email to get recovery instructions.</p>
+    <div class="lf-group" style="margin-top:16px">
+      <div class="lf-wrap">
+        <span class="lf-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></span>
+        <input type="email" id="forgotEmail" class="lf-input" placeholder="Enter your admin email">
+      </div>
+    </div>
+    <div id="forgotResult" class="forgot-result hidden"></div>
+    <button class="btn-login" id="forgotSubmitBtn" style="margin-top:14px">SEND RECOVERY INFO</button>
+    <div class="forgot-accounts">
+      <p class="fa-title">Registered Admin Accounts</p>
+      <div class="fa-row"><span class="role-chip chip-super">Super Admin</span><code>superadmin@playta.com</code></div>
+      <div class="fa-row"><span class="role-chip chip-admin">Admin</span><code>admin@playta.com</code></div>
+      <div class="fa-row"><span class="role-chip chip-mod">Moderator</span><code>mod@playta.com</code></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     ADMIN APP
+══════════════════════════════════════ -->
+<div id="adminApp" class="admin-app hidden">
+
+  <!-- ── SIDEBAR ── -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <img src="../assets/playta-logo.png" alt="PLAYTA" class="sb-logo">
+      <div class="sb-brand-text">
+        <span class="sb-name">PLAYTA</span>
+        <span class="sb-badge">ADMIN</span>
+      </div>
+    </div>
+
+    <div class="sb-divider"></div>
+
+    <nav class="sb-nav">
+      <a class="nav-item active" data-section="dashboard">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        <span>Dashboard</span>
+      </a>
+      <a class="nav-item" data-section="users">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <span>Users</span>
+        <span class="nav-count" id="navUserCount">0</span>
+      </a>
+      <a class="nav-item" data-section="matches">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        <span>Matches</span>
+        <span class="nav-count" id="navMatchCount">0</span>
+      </a>
+      <a class="nav-item" data-section="transactions">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        <span>Transactions</span>
+      </a>
+      <a class="nav-item" data-section="units">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+        <span>Units</span>
+      </a>
+      <a class="nav-item" data-section="analytics">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        <span>Analytics</span>
+      </a>
+      <a class="nav-item" data-section="results">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg>
+        <span>Results</span>
+        <span class="nav-count" id="navResultCount">0</span>
+      </a>
+      <a class="nav-item" data-section="disputes">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        <span>Disputes</span>
+        <span class="nav-count" id="navDisputeCount">0</span>
+      </a>
+      <a class="nav-item" data-section="withdrawals">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+        <span>Withdrawals</span>
+        <span class="nav-count" id="navWithdrawCount">0</span>
+      </a>
+      <a class="nav-item" data-section="tickets">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <span>Tickets</span>
+        <span class="nav-count" id="navTicketCount">0</span>
+      </a>
+      <a class="nav-item" data-section="kyc">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+        <span>KYC</span>
+        <span class="nav-count" id="navKycCount">0</span>
+      </a>
+      <a class="nav-item" data-section="content">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+        <span>Content</span>
+      </a>
+      <a class="nav-item" data-section="antifraud">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        <span>Anti-Fraud</span>
+        <span class="nav-count" id="navFraudCount">0</span>
+      </a>
+      <a class="nav-item" data-section="admins">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><polyline points="17 11 19 13 23 9"/></svg>
+        <span>Admin Mgmt</span>
+      </a>
+      <a class="nav-item" data-section="settings">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93l-1.41 1.41M4.93 4.93l1.41 1.41M4.93 19.07l1.41-1.41M19.07 19.07l-1.41-1.41M12 2v2M12 20v2M2 12h2M20 12h2"/></svg>
+        <span>Settings</span>
+      </a>
+    </nav>
+
+    <div class="sb-bottom">
+      <div class="sb-admin-info">
+        <div class="sb-admin-avatar" id="sbAvatar">A</div>
+        <div>
+          <p class="sb-admin-name" id="sbAdminName">Admin</p>
+          <span class="sb-role-badge" id="sbRoleBadge">Admin</span>
+        </div>
+      </div>
+      <button class="sb-logout" id="adminLogoutBtn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Logout
+      </button>
+    </div>
+  </aside>
+
+  <!-- ── MAIN CONTENT ── -->
+  <div class="main-content">
+
+    <!-- Header -->
+    <header class="admin-header">
+      <div class="ah-left">
+        <button class="sidebar-toggle" id="sidebarToggle">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+        <div>
+          <h1 class="page-title" id="pageTitle">Dashboard</h1>
+          <p class="page-sub" id="pageSub">Overview of your platform</p>
+        </div>
+      </div>
+      <div class="ah-right">
+        <div class="search-box">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="globalSearch" placeholder="Search users, matches...">
+        </div>
+        <div class="ah-date" id="ahDate"></div>
+        <div class="ah-notif">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <span class="notif-dot"></span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Content Sections -->
+    <div class="content-body">
+
+      <!-- ═══════════ DASHBOARD ═══════════ -->
+      <section id="section-dashboard" class="cs active">
+
+        <!-- Stats Row 1 -->
+        <div class="stats-grid">
+          <div class="stat-card sc-green">
+            <div class="sc-icon">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            </div>
+            <div class="sc-info">
+              <p class="sc-label">Total Users</p>
+              <h2 class="sc-value" id="statTotalUsers">0</h2>
+              <p class="sc-change" id="statUsersChange">—</p>
+            </div>
+          </div>
+          <div class="stat-card sc-cyan">
+            <div class="sc-icon">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+            </div>
+            <div class="sc-info">
+              <p class="sc-label">Active Today</p>
+              <h2 class="sc-value" id="statActiveToday">0</h2>
+              <p class="sc-change">Daily Active Users</p>
+            </div>
+          </div>
+          <div class="stat-card sc-purple">
+            <div class="sc-icon">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            </div>
+            <div class="sc-info">
+              <p class="sc-label">Total Revenue</p>
+              <h2 class="sc-value" id="statRevenue">₹0</h2>
+              <p class="sc-change">Lifetime earnings</p>
+            </div>
+          </div>
+          <div class="stat-card sc-orange">
+            <div class="sc-icon">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            </div>
+            <div class="sc-info">
+              <p class="sc-label">Total Matches</p>
+              <h2 class="sc-value" id="statMatches">0</h2>
+              <p class="sc-change" id="statLiveMatches">0 live now</p>
+            </div>
+          </div>
+          <div class="stat-card sc-green">
+            <div class="sc-icon">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+            </div>
+            <div class="sc-info">
+              <p class="sc-label">Units Sold</p>
+              <h2 class="sc-value" id="statUnitsSold">0</h2>
+              <p class="sc-change">Total platform units</p>
+            </div>
+          </div>
+          <div class="stat-card sc-red">
+            <div class="sc-icon">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+            </div>
+            <div class="sc-info">
+              <p class="sc-label">Withdrawals</p>
+              <h2 class="sc-value" id="statWithdrawals">₹0</h2>
+              <p class="sc-change">Total withdrawn</p>
+            </div>
+          </div>
+          <div class="stat-card sc-cyan">
+            <div class="sc-icon">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+            </div>
+            <div class="sc-info">
+              <p class="sc-label">New This Week</p>
+              <h2 class="sc-value" id="statNewWeek">0</h2>
+              <p class="sc-change">Registered this week</p>
+            </div>
+          </div>
+          <div class="stat-card sc-purple">
+            <div class="sc-icon">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            </div>
+            <div class="sc-info">
+              <p class="sc-label">Returning Users</p>
+              <h2 class="sc-value" id="statReturning">0</h2>
+              <p class="sc-change">Logged in before</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Charts Row -->
+        <div class="charts-row">
+          <div class="chart-card chart-large">
+            <div class="chart-header">
+              <h3>User Growth</h3>
+              <div class="chart-tabs">
+                <button class="ct-btn active" data-chart="growth" data-period="week">Week</button>
+                <button class="ct-btn" data-chart="growth" data-period="month">Month</button>
+              </div>
+            </div>
+            <canvas id="userGrowthChart" height="100"></canvas>
+          </div>
+          <div class="chart-card chart-small">
+            <div class="chart-header">
+              <h3>Match Types</h3>
+            </div>
+            <canvas id="matchTypeChart" height="200"></canvas>
+          </div>
+        </div>
+
+        <div class="charts-row">
+          <div class="chart-card chart-medium">
+            <div class="chart-header">
+              <h3>Revenue (₹)</h3>
+              <div class="chart-tabs">
+                <button class="ct-btn active" data-chart="revenue" data-period="week">Week</button>
+                <button class="ct-btn" data-chart="revenue" data-period="month">Month</button>
+              </div>
+            </div>
+            <canvas id="revenueChart" height="120"></canvas>
+          </div>
+          <div class="chart-card chart-medium">
+            <div class="chart-header">
+              <h3>Daily Active Users</h3>
+            </div>
+            <canvas id="dauChart" height="120"></canvas>
+          </div>
+        </div>
+
+        <!-- Tables Row -->
+        <div class="tables-row">
+          <div class="table-card">
+            <div class="tc-header">
+              <h3>Recent Users</h3>
+              <a class="tc-link" data-section="users">View all →</a>
+            </div>
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>User</th>
+                  <th>Email</th>
+                  <th>Joined</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="recentUsersBody"></tbody>
+            </table>
+          </div>
+          <div class="table-card">
+            <div class="tc-header">
+              <h3>Active Matches</h3>
+              <a class="tc-link" data-section="matches">View all →</a>
+            </div>
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Match</th>
+                  <th>Type</th>
+                  <th>Slots</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="activeMatchesBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ═══════════ USERS ═══════════ -->
+      <section id="section-users" class="cs">
+        <div class="section-toolbar">
+          <div class="st-left">
+            <div class="st-search">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input type="text" id="userSearch" placeholder="Search by name, email, mobile...">
+            </div>
+            <select class="st-filter" id="userStatusFilter">
+              <option value="all">All Users</option>
+              <option value="active">Active</option>
+              <option value="banned">Banned</option>
+            </select>
+          </div>
+          <div class="st-right">
+            <button class="btn-export" id="exportUsersBtn">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Export CSV
+            </button>
+          </div>
+        </div>
+        <div class="table-card full">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>User</th>
+                <th>Username</th>
+                <th>Email</th>
+                <th>Mobile</th>
+                <th>Joined</th>
+                <th>Last Active</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="usersTableBody"></tbody>
+          </table>
+          <div class="table-empty hidden" id="usersEmpty">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+            <p>No users found</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══════════ MATCHES ═══════════ -->
+      <section id="section-matches" class="cs">
+        <div class="section-toolbar">
+          <div class="st-left">
+            <div class="st-search">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input type="text" id="matchSearch" placeholder="Search matches...">
+            </div>
+            <select class="st-filter" id="matchTypeFilter">
+              <option value="all">All Types</option>
+              <option value="Solo">Solo</option>
+              <option value="Duo">Duo</option>
+              <option value="Squad">Squad</option>
+            </select>
+          </div>
+          <div class="st-right">
+            <button class="btn-primary-sm" id="createMatchBtn">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Create Match
+            </button>
+          </div>
+        </div>
+        <div class="table-card full">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Match ID</th>
+                <th>Type</th>
+                <th>Prize Pool</th>
+                <th>Entry Fee</th>
+                <th>Date</th>
+                <th>Slots</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="matchesTableBody"></tbody>
+          </table>
+          <div class="table-empty hidden" id="matchesEmpty">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            <p>No matches found</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══════════ TRANSACTIONS ═══════════ -->
+      <section id="section-transactions" class="cs">
+        <div class="stats-grid mini">
+          <div class="stat-card sc-green">
+            <div class="sc-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></div>
+            <div class="sc-info">
+              <p class="sc-label">Total Added</p>
+              <h2 class="sc-value" id="txTotalAdded">₹0</h2>
+            </div>
+          </div>
+          <div class="stat-card sc-red">
+            <div class="sc-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg></div>
+            <div class="sc-info">
+              <p class="sc-label">Total Withdrawn</p>
+              <h2 class="sc-value" id="txTotalWithdrawn">₹0</h2>
+            </div>
+          </div>
+          <div class="stat-card sc-purple">
+            <div class="sc-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div>
+            <div class="sc-info">
+              <p class="sc-label">Units Purchased</p>
+              <h2 class="sc-value" id="txUnitsBought">0</h2>
+            </div>
+          </div>
+          <div class="stat-card sc-orange">
+            <div class="sc-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+            <div class="sc-info">
+              <p class="sc-label">Net Revenue</p>
+              <h2 class="sc-value" id="txNetRevenue">₹0</h2>
+            </div>
+          </div>
+        </div>
+        <div class="table-card full" style="margin-top:20px">
+          <div class="tc-header">
+            <h3>Transaction History</h3>
+            <select class="st-filter" id="txTypeFilter">
+              <option value="all">All Types</option>
+              <option value="add">Money Added</option>
+              <option value="withdraw">Withdrawal</option>
+              <option value="buy">Units Bought</option>
+              <option value="entry">Match Entry</option>
+              <option value="winning">Winnings</option>
+            </select>
+          </div>
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>User</th>
+                <th>Type</th>
+                <th>Amount</th>
+                <th>Units</th>
+                <th>Date</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="txTableBody"></tbody>
+          </table>
+          <div class="table-empty hidden" id="txEmpty">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            <p>No transactions found</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══════════ UNITS ═══════════ -->
+      <section id="section-units" class="cs">
+        <div class="units-grid">
+          <div class="unit-info-card">
+            <h3>Units Overview</h3>
+            <div class="unit-stats">
+              <div class="us-item">
+                <p class="us-label">Total Units Issued</p>
+                <h2 class="us-value" id="unitTotalIssued">0</h2>
+              </div>
+              <div class="us-item">
+                <p class="us-label">Units in Circulation</p>
+                <h2 class="us-value" id="unitCirculation">0</h2>
+              </div>
+              <div class="us-item">
+                <p class="us-label">Units Used in Matches</p>
+                <h2 class="us-value" id="unitUsed">0</h2>
+              </div>
+              <div class="us-item">
+                <p class="us-label">1 Unit = ₹</p>
+                <h2 class="us-value">1.00</h2>
+              </div>
+            </div>
+          </div>
+          <div class="unit-add-card">
+            <h3>Add Units to User</h3>
+            <div class="ua-form">
+              <div class="ua-field">
+                <label>Search User</label>
+                <input type="text" id="unitUserSearch" placeholder="Enter username or email">
+              </div>
+              <div id="unitUserResult" class="unit-user-result hidden"></div>
+              <div class="ua-field">
+                <label>Units to Add</label>
+                <input type="number" id="unitAmount" placeholder="Enter amount" min="1">
+              </div>
+              <div class="ua-field">
+                <label>Reason</label>
+                <input type="text" id="unitReason" placeholder="e.g. Winning prize, Bonus">
+              </div>
+              <button class="btn-primary-sm full" id="addUnitsBtn">Add Units</button>
+            </div>
+          </div>
+        </div>
+        <div class="table-card full" style="margin-top:20px">
+          <div class="tc-header"><h3>Unit Ledger (Per User)</h3></div>
+          <table class="admin-table">
+            <thead>
+              <tr><th>#</th><th>User</th><th>Total Received</th><th>Total Spent</th><th>Current Balance</th><th>Last Activity</th></tr>
+            </thead>
+            <tbody id="unitLedgerBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ═══════════ ANALYTICS ═══════════ -->
+      <section id="section-analytics" class="cs">
+        <div class="charts-row">
+          <div class="chart-card chart-large">
+            <div class="chart-header"><h3>User Retention Rate</h3></div>
+            <canvas id="retentionChart" height="120"></canvas>
+          </div>
+          <div class="chart-card chart-small">
+            <div class="chart-header"><h3>Platform Distribution</h3></div>
+            <canvas id="platformChart" height="200"></canvas>
+          </div>
+        </div>
+        <div class="charts-row">
+          <div class="chart-card chart-medium">
+            <div class="chart-header"><h3>Match Entry Revenue</h3></div>
+            <canvas id="entryRevenueChart" height="120"></canvas>
+          </div>
+          <div class="chart-card chart-medium">
+            <div class="chart-header"><h3>Hourly Active Users</h3></div>
+            <canvas id="hourlyChart" height="120"></canvas>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══════════ SETTINGS ═══════════ -->
+      <section id="section-settings" class="cs">
+        <div class="settings-grid">
+          <div class="setting-card">
+            <h3>Platform Settings</h3>
+            <div class="setting-item">
+              <div>
+                <p class="si-title">Maintenance Mode</p>
+                <p class="si-desc">Disable access for all users</p>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" id="maintenanceToggle">
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+            <div class="setting-item">
+              <div>
+                <p class="si-title">New Registrations</p>
+                <p class="si-desc">Allow new users to sign up</p>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" id="registrationToggle" checked>
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+            <div class="setting-item">
+              <div>
+                <p class="si-title">Free Entry Matches</p>
+                <p class="si-desc">Enable free entry tournaments</p>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" id="freeMatchToggle" checked>
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+          </div>
+
+          <div class="setting-card">
+            <h3>Financial Settings</h3>
+            <div class="sf-row">
+              <label>Minimum Withdrawal (₹)</label>
+              <input type="number" class="sf-input" value="100" id="minWithdraw">
+            </div>
+            <div class="sf-row">
+              <label>Maximum Withdrawal (₹)</label>
+              <input type="number" class="sf-input" value="10000" id="maxWithdraw">
+            </div>
+            <div class="sf-row">
+              <label>Platform Fee (%)</label>
+              <input type="number" class="sf-input" value="10" id="platformFee">
+            </div>
+            <div class="sf-row">
+              <label>Unit Rate (₹ per Unit)</label>
+              <input type="number" class="sf-input" value="1" id="unitRate">
+            </div>
+            <button class="btn-primary-sm" id="saveFinanceBtn">Save Settings</button>
+          </div>
+
+          <div class="setting-card">
+            <h3>Change Admin Password</h3>
+            <div class="sf-row">
+              <label>Current Password</label>
+              <input type="password" class="sf-input" id="currPass" placeholder="Current password">
+            </div>
+            <div class="sf-row">
+              <label>New Password</label>
+              <input type="password" class="sf-input" id="newPass" placeholder="New password">
+            </div>
+            <div class="sf-row">
+              <label>Confirm Password</label>
+              <input type="password" class="sf-input" id="confPass" placeholder="Confirm new password">
+            </div>
+            <button class="btn-primary-sm" id="changePassBtn">Change Password</button>
+            <p class="setting-msg hidden" id="passMsg"></p>
+          </div>
+
+          <div class="setting-card">
+            <h3>Data Management</h3>
+            <div class="setting-item">
+              <div>
+                <p class="si-title">Clear All Matches</p>
+                <p class="si-desc">Remove all upcoming matches</p>
+              </div>
+              <button class="btn-danger-sm" id="clearMatchesBtn">Clear</button>
+            </div>
+            <div class="setting-item">
+              <div>
+                <p class="si-title">Reset User Data</p>
+                <p class="si-desc">Clear all user registrations</p>
+              </div>
+              <button class="btn-danger-sm" id="clearUsersBtn">Reset</button>
+            </div>
+            <div class="setting-item">
+              <div>
+                <p class="si-title">Export All Data</p>
+                <p class="si-desc">Download platform data as JSON</p>
+              </div>
+              <button class="btn-export" id="exportAllBtn">Export</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Audit Log -->
+        <div class="audit-log-card" style="margin-top:20px">
+          <div class="tc-header">
+            <h3>🔍 Audit Log — Recent Activity</h3>
+            <button class="btn-export" id="clearAuditBtn">Clear Logs</button>
+          </div>
+          <div id="auditLogContainer" style="overflow-x:auto"></div>
+        </div>
+
+      </section>
+
+      <!-- ═══════════ RESULTS ═══════════ -->
+      <section id="section-results" class="cs">
+        <div class="feat-tabs">
+          <button class="ft-btn active" data-tab="pending-results">⏳ Pending Settlement</button>
+          <button class="ft-btn" data-tab="settled-results">✅ Settlement History</button>
+        </div>
+        <div id="pending-results" class="feat-tab-content active">
+          <div class="table-card full">
+            <div class="tc-header"><h3>Pending Match Results</h3><span class="badge badge-banned" id="pendingResultsBadge">0 pending</span></div>
+            <table class="admin-table"><thead><tr><th>Match ID</th><th>Player</th><th>Submitted Kills</th><th>Rank</th><th>Screenshot</th><th>Submitted</th><th>Actions</th></tr></thead>
+            <tbody id="pendingResultsBody"></tbody></table>
+            <div class="table-empty" id="noResults"><p>No pending results</p></div>
+          </div>
+        </div>
+        <div id="settled-results" class="feat-tab-content">
+          <div class="table-card full">
+            <div class="tc-header"><h3>Settlement History</h3><button class="btn-export" id="exportSettlementsBtn">Export CSV</button></div>
+            <table class="admin-table"><thead><tr><th>Settlement ID</th><th>Match</th><th>Player</th><th>Kills</th><th>Rank</th><th>Prize Paid</th><th>Date</th><th>Admin</th></tr></thead>
+            <tbody id="settlementHistoryBody"></tbody></table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══════════ DISPUTES ═══════════ -->
+      <section id="section-disputes" class="cs">
+        <div class="section-toolbar">
+          <div class="st-left">
+            <div class="st-search"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input type="text" id="disputeSearch" placeholder="Search disputes..."></div>
+            <select class="st-filter" id="disputeStatusFilter"><option value="all">All Status</option><option value="pending">Pending</option><option value="investigating">Investigating</option><option value="resolved">Resolved</option><option value="dismissed">Dismissed</option></select>
+            <select class="st-filter" id="disputeCatFilter"><option value="all">All Categories</option><option value="Hacker">Hacker</option><option value="Team-up">Team-up</option><option value="Fake Screenshot">Fake Screenshot</option><option value="Wrong Result">Wrong Result</option><option value="Cheating">Cheating</option><option value="Other">Other</option></select>
+          </div>
+        </div>
+        <div class="table-card full">
+          <table class="admin-table"><thead><tr><th>#</th><th>Reporter</th><th>Reported</th><th>Match</th><th>Category</th><th>Filed</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody id="disputesBody"></tbody></table>
+          <div class="table-empty" id="noDisputes"><p>No disputes filed</p></div>
+        </div>
+      </section>
+
+      <!-- ═══════════ WITHDRAWALS ═══════════ -->
+      <section id="section-withdrawals" class="cs">
+        <div class="stats-grid mini" style="margin-bottom:16px">
+          <div class="stat-card sc-orange"><div class="sc-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div><div class="sc-info"><p class="sc-label">Pending</p><h2 class="sc-value" id="wthPending">0</h2></div></div>
+          <div class="stat-card sc-green"><div class="sc-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg></div><div class="sc-info"><p class="sc-label">Approved Today</p><h2 class="sc-value" id="wthApproved">0</h2></div></div>
+          <div class="stat-card sc-red"><div class="sc-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div><div class="sc-info"><p class="sc-label">Rejected Today</p><h2 class="sc-value" id="wthRejected">0</h2></div></div>
+          <div class="stat-card sc-purple"><div class="sc-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div><div class="sc-info"><p class="sc-label">Total Paid Out</p><h2 class="sc-value" id="wthTotal">₹0</h2></div></div>
+        </div>
+        <div class="section-toolbar">
+          <div class="st-left">
+            <select class="st-filter" id="wthStatusFilter"><option value="all">All</option><option value="pending">Pending</option><option value="approved">Approved</option><option value="rejected">Rejected</option><option value="failed">Failed</option></select>
+          </div>
+          <div class="st-right"><button class="btn-primary-sm" id="addDemoWithdrawalBtn">+ Add Demo Request</button></div>
+        </div>
+        <div class="table-card full">
+          <table class="admin-table"><thead><tr><th>#</th><th>User</th><th>Amount</th><th>UPI/Bank</th><th>Requested</th><th>Status</th><th>UTR ID</th><th>Actions</th></tr></thead>
+          <tbody id="withdrawalsBody"></tbody></table>
+          <div class="table-empty" id="noWithdrawals"><p>No withdrawal requests</p></div>
+        </div>
+      </section>
+
+      <!-- ═══════════ TICKETS ═══════════ -->
+      <section id="section-tickets" class="cs">
+        <div class="section-toolbar">
+          <div class="st-left">
+            <div class="st-search"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input type="text" id="ticketSearch" placeholder="Search tickets..."></div>
+            <select class="st-filter" id="ticketStatusFilter"><option value="all">All</option><option value="open">Open</option><option value="pending">Pending</option><option value="resolved">Resolved</option><option value="closed">Closed</option></select>
+            <select class="st-filter" id="ticketCatFilter"><option value="all">All Categories</option><option value="Payment">Payment</option><option value="Withdrawal">Withdrawal</option><option value="Match">Match</option><option value="Result">Result</option><option value="Account">Account</option><option value="KYC">KYC</option><option value="Technical">Technical</option><option value="Other">Other</option></select>
+          </div>
+          <div class="st-right"><button class="btn-primary-sm" id="createDemoTicketBtn">+ Demo Ticket</button></div>
+        </div>
+        <div class="table-card full">
+          <table class="admin-table"><thead><tr><th>Ticket ID</th><th>User</th><th>Subject</th><th>Category</th><th>Priority</th><th>Assigned To</th><th>Created</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody id="ticketsBody"></tbody></table>
+          <div class="table-empty" id="noTickets"><p>No support tickets</p></div>
+        </div>
+      </section>
+
+      <!-- ═══════════ KYC ═══════════ -->
+      <section id="section-kyc" class="cs">
+        <div class="stats-grid mini" style="margin-bottom:16px">
+          <div class="stat-card sc-orange"><div class="sc-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div><div class="sc-info"><p class="sc-label">Pending Review</p><h2 class="sc-value" id="kycPending">0</h2></div></div>
+          <div class="stat-card sc-green"><div class="sc-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg></div><div class="sc-info"><p class="sc-label">Approved</p><h2 class="sc-value" id="kycApproved">0</h2></div></div>
+          <div class="stat-card sc-red"><div class="sc-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div><div class="sc-info"><p class="sc-label">Rejected</p><h2 class="sc-value" id="kycRejected">0</h2></div></div>
+          <div class="stat-card sc-cyan"><div class="sc-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg></div><div class="sc-info"><p class="sc-label">Re-submitted</p><h2 class="sc-value" id="kycResubmit">0</h2></div></div>
+        </div>
+        <div class="section-toolbar">
+          <div class="st-left">
+            <select class="st-filter" id="kycStatusFilter"><option value="all">All</option><option value="pending">Pending</option><option value="approved">Approved</option><option value="rejected">Rejected</option><option value="resubmit">Re-submission</option></select>
+          </div>
+          <div class="st-right"><button class="btn-primary-sm" id="addDemoKycBtn">+ Demo KYC</button></div>
+        </div>
+        <div class="table-card full">
+          <table class="admin-table"><thead><tr><th>#</th><th>User</th><th>Full Name</th><th>DOB</th><th>Document</th><th>Submitted</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody id="kycBody"></tbody></table>
+          <div class="table-empty" id="noKyc"><p>No KYC submissions</p></div>
+        </div>
+      </section>
+
+      <!-- ═══════════ CONTENT ═══════════ -->
+      <section id="section-content" class="cs">
+        <div class="feat-tabs">
+          <button class="ft-btn active" data-tab="banners-tab">🖼️ Banners</button>
+          <button class="ft-btn" data-tab="notifs-tab">📢 Notifications</button>
+        </div>
+        <div id="banners-tab" class="feat-tab-content active">
+          <div class="section-toolbar"><div class="st-left"></div><div class="st-right"><button class="btn-primary-sm" id="addBannerBtn">+ Add Banner</button></div></div>
+          <div class="banners-grid" id="bannersGrid"></div>
+          <div class="table-empty" id="noBanners"><p>No banners created yet</p></div>
+        </div>
+        <div id="notifs-tab" class="feat-tab-content">
+          <div class="notif-composer">
+            <h3>Send Push Notification</h3>
+            <div class="mf-row">
+              <div class="mf-group"><label>Target Audience</label>
+                <select class="mf-input" id="notifTarget"><option value="all">All Users</option><option value="selected">Selected Users</option><option value="match">Match Players</option></select></div>
+              <div class="mf-group"><label>Notification Type</label>
+                <select class="mf-input" id="notifType"><option value="announcement">General Announcement</option><option value="match_reminder">Match Reminder</option><option value="room_update">Room ID/Password Update</option><option value="match_starting">Match Starting Soon</option><option value="result">Result Announced</option></select></div>
+            </div>
+            <div class="mf-group full"><label>Title</label><input type="text" class="mf-input" id="notifTitle" placeholder="Notification title"></div>
+            <div class="mf-group full"><label>Message</label><textarea class="mf-input" id="notifMessage" rows="3" placeholder="Enter notification message..." style="resize:vertical"></textarea></div>
+            <button class="btn-primary-sm" id="sendNotifBtn">📢 SEND NOTIFICATION</button>
+          </div>
+          <div class="table-card full" style="margin-top:20px">
+            <div class="tc-header"><h3>Notification History</h3></div>
+            <table class="admin-table"><thead><tr><th>#</th><th>Title</th><th>Message</th><th>Target</th><th>Type</th><th>Sent By</th><th>Sent At</th></tr></thead>
+            <tbody id="notifHistoryBody"></tbody></table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══════════ ANTI-FRAUD ═══════════ -->
+      <section id="section-antifraud" class="cs">
+        <div class="fraud-notice">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          <span>Device/IP matching is a <strong>risk signal only</strong> — final action requires Admin review. No automatic bans.</span>
+        </div>
+        <div class="section-toolbar">
+          <div class="st-left">
+            <select class="st-filter" id="fraudStatusFilter"><option value="all">All</option><option value="flagged">Flagged</option><option value="investigating">Investigating</option><option value="cleared">Cleared</option><option value="banned">Banned</option></select>
+          </div>
+          <div class="st-right"><button class="btn-primary-sm" id="runFraudScanBtn">🔍 Run Fraud Scan</button></div>
+        </div>
+        <div class="table-card full">
+          <table class="admin-table"><thead><tr><th>#</th><th>User</th><th>Risk Score</th><th>Flags</th><th>Device Match</th><th>Flagged</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody id="fraudBody"></tbody></table>
+          <div class="table-empty" id="noFraud"><p>No suspicious activity detected</p></div>
+        </div>
+      </section>
+
+      <!-- ═══════════ ADMIN MANAGEMENT ═══════════ -->
+      <section id="section-admins" class="cs">
+        <div class="section-toolbar">
+          <div class="st-left"><h3 style="color:var(--t1);font-size:13px">Manage admin accounts and permissions</h3></div>
+          <div class="st-right"><button class="btn-primary-sm" id="createAdminBtn">+ Create Admin</button></div>
+        </div>
+        <div class="table-card full">
+          <table class="admin-table"><thead><tr><th>#</th><th>Name</th><th>Email</th><th>Role</th><th>2FA</th><th>Last Login</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody id="adminMgmtBody"></tbody></table>
+        </div>
+      </section>
+
+    </div><!-- /content-body -->
+  </div><!-- /main-content -->
+</div><!-- /adminApp -->
+
+<!-- CREATE MATCH MODAL -->
+<div id="createMatchModal" class="modal-overlay hidden">
+  <div class="modal-card">
+    <div class="modal-header">
+      <h3>Create New Match</h3>
+      <button class="modal-close" id="closeMatchModal">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="mf-row">
+        <div class="mf-group">
+          <label>Tournament Type <span style="color:var(--t1);font-weight:400">(controls where it shows)</span></label>
+          <select class="mf-input" id="mfCategory">
+            <option value="mega">🏆 Mega Tournament → Home Page</option>
+            <option value="daily">🗓️ Daily Tournament → Free Fire List</option>
+          </select>
+          <p id="categoryHint" style="font-size:11px;color:var(--t1);margin-top:5px">
+            🏠 Will appear on the <strong style="color:var(--green)">Home Page</strong> Live Tournaments section
+          </p>
+        </div>
+        <div class="mf-group">
+          <label>Match Type</label>
+          <select class="mf-input" id="mfType">
+            <option value="Solo">Solo (48 players)</option>
+            <option value="Duo">Duo (24 teams)</option>
+            <option value="Squad">Squad (12 teams)</option>
+          </select>
+        </div>
+      </div>
+      <div class="mf-row">
+        <div class="mf-group">
+          <label>Map</label>
+          <select class="mf-input" id="mfMap">
+            <option>Bermuda</option>
+            <option>Kalahari</option>
+            <option>Purgatory</option>
+            <option>Alpine</option>
+          </select>
+        </div>
+        <div class="mf-group">
+          <label>Per Kill Reward (Units)</label>
+          <input type="number" class="mf-input" id="mfKillReward" placeholder="e.g. 5" min="0" value="0">
+        </div>
+      </div>
+      <div class="mf-row">
+          <input type="number" class="mf-input" id="mfEntry" placeholder="0 for free" min="0" value="0">
+        </div>
+        <div class="mf-group">
+          <label>Prize Pool (Units)</label>
+          <input type="number" class="mf-input" id="mfPrize" placeholder="Enter prize pool" min="0">
+        </div>
+      </div>
+      <div class="mf-row">
+        <div class="mf-group">
+          <label>Match Date</label>
+          <input type="date" class="mf-input" id="mfDate">
+        </div>
+        <div class="mf-group">
+          <label>Match Time</label>
+          <input type="time" class="mf-input" id="mfTime">
+        </div>
+      </div>
+      <div class="mf-group full">
+        <label>Special Rules / Notes</label>
+        <input type="text" class="mf-input" id="mfRules" placeholder="e.g. Ryden BAN | Level 40+ | Screen Recording Mandatory">
+      </div>
+      <div class="mf-row">
+        <div class="mf-group">
+          <label>Room ID (optional)</label>
+          <input type="text" class="mf-input" id="mfRoomId" placeholder="Enter room ID">
+        </div>
+      </div>
+      <div class="mf-group full">
+        <label>Room Password (optional)</label>
+        <input type="text" class="mf-input" id="mfRoomPass" placeholder="Enter room password">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" id="cancelMatchBtn">Cancel</button>
+      <button class="btn-primary-sm" id="saveMatchBtn">Create Match</button>
+    </div>
+  </div>
+</div>
+
+<!-- RESULT SETTLEMENT MODAL -->
+<div id="resultModal" class="modal-overlay hidden">
+  <div class="modal-card" style="max-width:620px">
+    <div class="modal-header"><h3>⚖️ Verify & Settle Result</h3><button class="modal-close" id="closeResultModal"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+    <div class="modal-body">
+      <div class="result-info" id="resultInfo"></div>
+      <div class="screenshot-viewer" id="screenshotViewer">
+        <div class="sv-placeholder">📸 Player submitted screenshot (Demo Mode — no actual upload)</div>
+      </div>
+      <div class="mf-row" style="margin-top:16px">
+        <div class="mf-group"><label>Player's Claimed Kills</label><input type="number" class="mf-input" id="rPlayerKills" disabled></div>
+        <div class="mf-group"><label>Player's Claimed Rank</label><input type="number" class="mf-input" id="rPlayerRank" disabled></div>
+      </div>
+      <div class="mf-row">
+        <div class="mf-group"><label>✅ Admin Verified Kills</label><input type="number" class="mf-input" id="rAdminKills" placeholder="Enter verified kill count" min="0"></div>
+        <div class="mf-group"><label>✅ Admin Verified Rank</label><input type="number" class="mf-input" id="rAdminRank" placeholder="Enter verified rank" min="1"></div>
+      </div>
+      <div class="result-calc" id="resultCalc">
+        <div class="rc-row"><span>Kill Reward (per kill):</span><span id="rcPerKill">₹0</span></div>
+        <div class="rc-row"><span>Rank Prize:</span><span id="rcRankPrize">₹0</span></div>
+        <div class="rc-row rc-total"><span>Total Settlement:</span><span id="rcTotal">₹0</span></div>
+      </div>
+      <div class="mf-group full"><label>Admin Note (optional)</label><input type="text" class="mf-input" id="rAdminNote" placeholder="Add verification note..."></div>
+      <div id="resultError" class="login-error hidden"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" id="rejectResultBtn" style="color:var(--red);border-color:rgba(255,76,76,0.3)">❌ Reject</button>
+      <button class="btn-cancel" id="resubmitResultBtn">🔄 Request Re-submit</button>
+      <button class="btn-primary-sm" id="approveResultBtn">✅ Approve & Settle</button>
+    </div>
+  </div>
+</div>
+
+<!-- DISPUTE DETAIL MODAL -->
+<div id="disputeModal" class="modal-overlay hidden">
+  <div class="modal-card" style="max-width:600px">
+    <div class="modal-header"><h3>🛡️ Dispute Review</h3><button class="modal-close" id="closeDisputeModal"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+    <div class="modal-body">
+      <div id="disputeDetail"></div>
+      <div class="mf-group full" style="margin-top:14px"><label>Action to Take</label>
+        <select class="mf-input" id="disputeAction">
+          <option value="none">No Action</option>
+          <option value="warning">⚠️ Issue Warning</option>
+          <option value="disqualify">🚫 Disqualify from Match</option>
+          <option value="ban_temp">🔒 Temporary Ban (7 days)</option>
+          <option value="ban_perm">⛔ Permanent Ban</option>
+          <option value="reward_reversal">💸 Reward Reversal</option>
+        </select>
+      </div>
+      <div class="mf-group full"><label>Resolution Note <span style="color:var(--red)">*</span></label><textarea class="mf-input" id="disputeNote" rows="3" placeholder="Explain your decision (required)..." style="resize:vertical"></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" id="dismissDisputeBtn">Dismiss</button>
+      <button class="btn-primary-sm" id="resolveDisputeBtn">Resolve Dispute</button>
+    </div>
+  </div>
+</div>
+
+<!-- WITHDRAWAL PROCESS MODAL -->
+<div id="withdrawalModal" class="modal-overlay hidden">
+  <div class="modal-card" style="max-width:520px">
+    <div class="modal-header"><h3>💸 Process Withdrawal</h3><button class="modal-close" id="closeWithdrawalModal"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+    <div class="modal-body">
+      <div id="withdrawalDetail"></div>
+      <div class="mf-row" style="margin-top:14px">
+        <div class="mf-group"><label>Status</label>
+          <select class="mf-input" id="wthAction">
+            <option value="approved">✅ Approve</option>
+            <option value="rejected">❌ Reject</option>
+            <option value="failed">⚠️ Mark Failed</option>
+          </select>
+        </div>
+        <div class="mf-group"><label>UTR / Reference ID</label><input type="text" class="mf-input" id="wthUtr" placeholder="Enter UTR/Ref No."></div>
+      </div>
+      <div class="mf-group full"><label>Rejection Reason (if rejecting)</label><input type="text" class="mf-input" id="wthReason" placeholder="Reason for rejection..."></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" id="cancelWithdrawalModal">Cancel</button>
+      <button class="btn-primary-sm" id="processWithdrawalBtn">Process Payment</button>
+    </div>
+  </div>
+</div>
+
+<!-- TICKET DETAIL MODAL -->
+<div id="ticketModal" class="modal-overlay hidden">
+  <div class="modal-card" style="max-width:600px">
+    <div class="modal-header"><h3>🎫 Support Ticket</h3><button class="modal-close" id="closeTicketModal"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+    <div class="modal-body">
+      <div id="ticketDetail"></div>
+      <div class="ticket-conversation" id="ticketConversation"></div>
+      <div class="mf-group full" style="margin-top:14px"><label>Admin Reply</label><textarea class="mf-input" id="ticketReply" rows="3" placeholder="Type your reply to the user..." style="resize:vertical"></textarea></div>
+      <div class="mf-group full"><label>Internal Note (not shown to user)</label><input type="text" class="mf-input" id="ticketInternalNote" placeholder="Internal admin note..."></div>
+      <div class="mf-row">
+        <div class="mf-group"><label>Status</label><select class="mf-input" id="ticketStatus"><option value="open">Open</option><option value="pending">Pending</option><option value="resolved">Resolved</option><option value="closed">Closed</option></select></div>
+        <div class="mf-group"><label>Assign To</label><select class="mf-input" id="ticketAssign"><option value="">Unassigned</option><option value="admin">Admin</option><option value="moderator">Moderator</option></select></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" id="cancelTicketModal">Close</button>
+      <button class="btn-primary-sm" id="replyTicketBtn">Send Reply & Update</button>
+    </div>
+  </div>
+</div>
+
+<!-- KYC REVIEW MODAL -->
+<div id="kycModal" class="modal-overlay hidden">
+  <div class="modal-card" style="max-width:560px">
+    <div class="modal-header"><h3>🪪 KYC Review</h3><button class="modal-close" id="closeKycModal"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+    <div class="modal-body">
+      <div id="kycDetail"></div>
+      <div class="kyc-doc-viewer">📄 Document Preview (Demo Mode — no actual file)</div>
+      <div class="mf-group full" style="margin-top:14px"><label>Admin Review Note <span style="color:var(--red)">*</span></label><textarea class="mf-input" id="kycNote" rows="3" placeholder="Add verification notes (required)..." style="resize:vertical"></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" id="kycResubmitBtn" style="color:var(--orange);border-color:rgba(255,159,67,0.3)">🔄 Request Re-submit</button>
+      <button class="btn-cancel" id="kycRejectBtn" style="color:var(--red);border-color:rgba(255,76,76,0.3)">❌ Reject</button>
+      <button class="btn-primary-sm" id="kycApproveBtn">✅ Approve KYC</button>
+    </div>
+  </div>
+</div>
+
+<!-- CREATE BANNER MODAL -->
+<div id="bannerModal" class="modal-overlay hidden">
+  <div class="modal-card" style="max-width:480px">
+    <div class="modal-header"><h3>🖼️ Add Banner</h3><button class="modal-close" id="closeBannerModal"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+    <div class="modal-body">
+      <div class="mf-group full"><label>Banner Title</label><input type="text" class="mf-input" id="bannerTitle" placeholder="Banner title"></div>
+      <div class="mf-group full"><label>Image URL</label><input type="text" class="mf-input" id="bannerUrl" placeholder="https://example.com/banner.jpg"></div>
+      <div class="mf-group full"><label>Destination / Action URL</label><input type="text" class="mf-input" id="bannerDest" placeholder="#matches or external URL"></div>
+      <div class="mf-row">
+        <div class="mf-group"><label>Order / Priority</label><input type="number" class="mf-input" id="bannerOrder" value="1" min="1"></div>
+        <div class="mf-group"><label>Status</label><select class="mf-input" id="bannerEnabled"><option value="true">Enabled</option><option value="false">Disabled</option></select></div>
+      </div>
+      <div class="mf-row">
+        <div class="mf-group"><label>Schedule From</label><input type="date" class="mf-input" id="bannerFrom"></div>
+        <div class="mf-group"><label>Schedule To</label><input type="date" class="mf-input" id="bannerTo"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" id="cancelBannerModal">Cancel</button>
+      <button class="btn-primary-sm" id="saveBannerBtn">Save Banner</button>
+    </div>
+  </div>
+</div>
+
+<!-- CREATE ADMIN MODAL -->
+<div id="createAdminModal" class="modal-overlay hidden">
+  <div class="modal-card" style="max-width:460px">
+    <div class="modal-header"><h3>👤 Create Admin Account</h3><button class="modal-close" id="closeCreateAdminModal"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+    <div class="modal-body">
+      <div class="mf-group full"><label>Full Name</label><input type="text" class="mf-input" id="newAdminName" placeholder="Enter full name"></div>
+      <div class="mf-group full"><label>Email</label><input type="email" class="mf-input" id="newAdminEmail" placeholder="Enter email address"></div>
+      <div class="mf-group full"><label>Password</label><input type="password" class="mf-input" id="newAdminPass" placeholder="Set a strong password"></div>
+      <div class="mf-row">
+        <div class="mf-group"><label>Role</label><select class="mf-input" id="newAdminRole"><option value="admin">Admin</option><option value="moderator">Moderator</option></select></div>
+        <div class="mf-group"><label>2FA</label><select class="mf-input" id="newAdminTwoFA"><option value="true">Enabled</option><option value="false">Disabled</option></select></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" id="cancelCreateAdminModal">Cancel</button>
+      <button class="btn-primary-sm" id="saveNewAdminBtn">Create Account</button>
+    </div>
+  </div>
+</div>
+
+<!-- FRAUD DETAIL MODAL -->
+<div id="fraudModal" class="modal-overlay hidden">
+  <div class="modal-card" style="max-width:540px">
+    <div class="modal-header"><h3>🚨 Fraud Investigation</h3><button class="modal-close" id="closeFraudModal"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+    <div class="modal-body">
+      <div id="fraudDetail"></div>
+      <div class="mf-group full" style="margin-top:14px"><label>Investigation Notes</label><textarea class="mf-input" id="fraudNote" rows="3" placeholder="Add investigation notes..." style="resize:vertical"></textarea></div>
+      <div class="mf-group full"><label>Action</label>
+        <select class="mf-input" id="fraudAction">
+          <option value="investigating">Mark: Investigating</option>
+          <option value="cleared">Mark: Cleared (No Fraud)</option>
+          <option value="warned">Issue Warning</option>
+          <option value="banned">Ban Account</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" id="cancelFraudModal">Cancel</button>
+      <button class="btn-primary-sm" id="saveFraudActionBtn">Save Action</button>
+    </div>
+  </div>
+</div>
+
+<!-- DANGEROUS ACTION CONFIRMATION MODAL -->
+<div id="dangerModal" class="modal-overlay hidden">
+  <div class="modal-card" style="max-width:420px">
+    <div class="modal-header"><h3 style="color:var(--red)">⚠️ Confirm Dangerous Action</h3><button class="modal-close" id="closeDangerModal"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+    <div class="modal-body">
+      <p id="dangerMsg" style="color:var(--t1);line-height:1.6;margin-bottom:16px"></p>
+      <div class="mf-group full"><label>Enter your admin password to confirm</label><input type="password" class="mf-input" id="dangerPassword" placeholder="Your admin password"></div>
+      <div id="dangerError" class="login-error hidden"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" id="cancelDangerModal">Cancel</button>
+      <button class="btn-primary-sm" id="confirmDangerBtn" style="background:var(--red);box-shadow:0 0 15px rgba(255,76,76,0.3)">CONFIRM ACTION</button>
+    </div>
+  </div>
+</div>
+
+<script src="admin.js"></script>
+</body>
+</html>
