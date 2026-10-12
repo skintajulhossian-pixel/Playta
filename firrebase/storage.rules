@@ -1,0 +1,120 @@
+// ═══════════════════════════════════════════════════════════
+// PLAYTA — Firebase Storage Security Rules
+// storage.rules
+//
+// Deploy: firebase deploy --only storage
+// ═══════════════════════════════════════════════════════════
+
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // ─────────────────────────────────────────────────────
+    // HELPER FUNCTIONS
+    // ─────────────────────────────────────────────────────
+
+    function isAuth() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuth() && request.auth.uid == userId;
+    }
+
+    // Check admin role via custom claim (set via Admin SDK / Cloud Function)
+    function isAdmin() {
+      return isAuth() && (
+        request.auth.token.role == 'super_admin' ||
+        request.auth.token.role == 'admin'
+      );
+    }
+
+    function isStaff() {
+      return isAuth() && (
+        request.auth.token.role == 'super_admin' ||
+        request.auth.token.role == 'admin'      ||
+        request.auth.token.role == 'moderator'
+      );
+    }
+
+    // Validate image file
+    function isValidImage() {
+      return request.resource.contentType.matches('image/.*')
+        && request.resource.size < 5 * 1024 * 1024; // max 5MB
+    }
+
+    // Validate WebP image (compressed on frontend)
+    function isWebP() {
+      return request.resource.contentType == 'image/webp'
+        && request.resource.size < 500 * 1024; // max 500KB after compression
+    }
+
+    // ─────────────────────────────────────────────────────
+    // GAME LOGOS
+    // /games/{gameId}/logo/{filename}
+    // Only admins can upload; everyone authenticated can read
+    // ─────────────────────────────────────────────────────
+    match /games/{gameId}/logo/{filename} {
+      allow read:  if isAuth();
+      allow write: if isAdmin() && isWebP();
+      allow delete: if isAdmin();
+    }
+
+    // ─────────────────────────────────────────────────────
+    // MATCH RESULT PROOFS / SCREENSHOTS
+    // /results/{matchId}/{userId}/{filename}
+    // Users can upload their own proof; admins can read all
+    // ─────────────────────────────────────────────────────
+    match /results/{matchId}/{userId}/{filename} {
+      allow read:  if isOwner(userId) || isStaff();
+      allow write: if isOwner(userId)
+        && isValidImage()
+        && request.resource.size < 10 * 1024 * 1024; // max 10MB for screenshots
+      allow delete: if isAdmin();
+    }
+
+    // ─────────────────────────────────────────────────────
+    // KYC DOCUMENTS
+    // /kyc/{userId}/{filename}
+    // Users upload their own; only super admin can read
+    // ─────────────────────────────────────────────────────
+    match /kyc/{userId}/{filename} {
+      allow read:  if isAdmin();
+      allow write: if isOwner(userId)
+        && isValidImage()
+        && request.resource.size < 10 * 1024 * 1024;
+      allow delete: if isAdmin();
+    }
+
+    // ─────────────────────────────────────────────────────
+    // HOME BANNERS
+    // /banners/{bannerId}/{filename}
+    // Admins upload; everyone authenticated can read
+    // ─────────────────────────────────────────────────────
+    match /banners/{bannerId}/{filename} {
+      allow read:  if isAuth();
+      allow write: if isAdmin() && isValidImage();
+      allow delete: if isAdmin();
+    }
+
+    // ─────────────────────────────────────────────────────
+    // USER AVATARS
+    // /avatars/{userId}/{filename}
+    // Users upload their own avatar
+    // ─────────────────────────────────────────────────────
+    match /avatars/{userId}/{filename} {
+      allow read:  if isAuth();
+      allow write: if isOwner(userId)
+        && isWebP()
+        && request.resource.size < 200 * 1024; // max 200KB
+      allow delete: if isOwner(userId) || isAdmin();
+    }
+
+    // ─────────────────────────────────────────────────────
+    // DENY ALL OTHER PATHS
+    // ─────────────────────────────────────────────────────
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

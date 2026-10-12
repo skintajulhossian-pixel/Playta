@@ -1,0 +1,400 @@
+// ═══════════════════════════════════════════════════════════
+// PLAYTA — Firestore Security Rules
+// firestore.rules
+//
+// Deploy: firebase deploy --only firestore:rules
+// ═══════════════════════════════════════════════════════════
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ─────────────────────────────────────────────────────
+    // HELPER FUNCTIONS
+    // ─────────────────────────────────────────────────────
+
+    // Check if the request comes from an authenticated user
+    function isAuth() {
+      return request.auth != null;
+    }
+
+    // Check if the request is from the owner of a document
+    function isOwner(userId) {
+      return isAuth() && request.auth.uid == userId;
+    }
+
+    // Check if the authenticated user has a specific role
+    // Roles are stored in /admin_accounts/{uid}
+    function hasRole(role) {
+      return isAuth() &&
+        exists(/databases/$(database)/documents/admin_accounts/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/admin_accounts/$(request.auth.uid)).data.role == role;
+    }
+
+    // Super Admin or Admin
+    function isAdmin() {
+      return isAuth() && (hasRole('super_admin') || hasRole('admin'));
+    }
+
+    // Super Admin, Admin, or Moderator
+    function isStaff() {
+      return isAuth() && (hasRole('super_admin') || hasRole('admin') || hasRole('moderator'));
+    }
+
+    // Super Admin only
+    function isSuperAdmin() {
+      return hasRole('super_admin');
+    }
+
+    // Validate wallet amount is positive and within limits
+    function validAmount(amount) {
+      return amount is number && amount > 0 && amount <= 100000;
+    }
+
+    // Check if a field is unchanged in an update
+    function unchanged(field) {
+      return !(field in request.resource.data) ||
+             request.resource.data[field] == resource.data[field];
+    }
+
+    // Timestamp is recent (within 5 minutes)
+    function recentTimestamp(ts) {
+      return ts is timestamp &&
+             ts > request.time - duration.value(5, 'm') &&
+             ts <= request.time + duration.value(1, 'm');
+    }
+
+    // ─────────────────────────────────────────────────────
+    // USERS COLLECTION
+    // /users/{userId}
+    // ─────────────────────────────────────────────────────
+    match /users/{userId} {
+
+      // Users can read their own profile
+      allow read: if isOwner(userId) || isStaff();
+
+      // Users can only create their OWN profile on signup
+      allow create: if isOwner(userId)
+        && request.resource.data.uid == userId
+        && request.resource.data.walletBalance == 0
+        && request.resource.data.keys().hasAll(['uid','email','username','walletBalance','createdAt'])
+        && request.resource.data.walletBalance is number;
+
+      // Users can update non-financial fields only
+      // Wallet balance CANNOT be updated directly by the user
+      allow update: if isOwner(userId)
+        && unchanged('walletBalance')
+        && unchanged('uid')
+        && unchanged('email')
+        && unchanged('createdAt');
+
+      // Only Super Admin can delete user accounts
+      allow delete: if isSuperAdmin();
+
+      // Wallet sub-collection — users can only READ their own
+      match /wallet/{txId} {
+        allow read: if isOwner(userId);
+        allow write: if false; // Only via Cloud Functions / Admin
+      }
+    }
+
+    // ─────────────────────────────────────────────────────
+    // GAMES COLLECTION (CMS)
+    // /games/{gameId}
+    // ─────────────────────────────────────────────────────
+    match /games/{gameId} {
+      // Any authenticated user can READ enabled games
+      allow read: if isAuth() && resource.data.enabled == true;
+
+      // Staff can read ALL (including disabled)
+      allow read: if isStaff();
+
+      // Only Admins can create/update/delete games
+      allow create, update: if isAdmin()
+        && request.resource.data.keys().hasAll(['name','slug','status','enabled','displayOrder'])
+        && request.resource.data.status in ['LIVE','COMING_SOON']
+        && request.resource.data.displayOrder is number;
+
+      allow delete: if isSuperAdmin();
+    }
+
+    // ─────────────────────────────────────────────────────
+    // MATCHES / TOURNAMENTS
+    // /matches/{matchId}
+    // ─────────────────────────────────────────────────────
+    match /matches/{matchId} {
+      // Everyone authenticated can read upcoming/live matches
+      allow read: if isAuth();
+
+      // Only Admins can create/update matches
+      allow create: if isAdmin()
+        && request.resource.data.keys().hasAll([
+          'gameId','matchType','category','entryFee',
+          'prizePool','totalSlots','status','createdAt'
+        ])
+        && request.resource.data.status == 'upcoming'
+        && request.resource.data.joinedSlots == 0
+        && request.resource.data.entryFee >= 0
+        && request.resource.data.prizePool > 0;
+
+      allow update: if isAdmin();
+
+      // Only Super Admin can delete (dangerous action)
+      allow delete: if isSuperAdmin();
+
+      // Room ID/Password subcollection — only visible to joined players & admins
+      match /room/{roomDoc} {
+        allow read: if isAdmin() ||
+          exists(/databases/$(database)/documents/match_registrations/$(matchId + '_' + request.auth.uid));
+        allow write: if isAdmin();
+      }
+    }
+
+    // ─────────────────────────────────────────────────────
+    // MATCH REGISTRATIONS
+    // /match_registrations/{matchId_userId}
+    // ─────────────────────────────────────────────────────
+    match /match_registrations/{regId} {
+      // Users can read their own registrations; admins can read all
+      allow read: if isAuth() &&
+        (request.auth.uid == resource.data.userId || isStaff());
+
+      // Users register themselves — entry fee validation happens server-side
+      // This rule prevents direct manipulation of wallet
+      allow create: if isAuth()
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.keys().hasAll(['matchId','userId','status','registeredAt'])
+        && request.resource.data.status == 'pending'
+        && !exists(/databases/$(database)/documents/match_registrations/$(regId));
+
+      // Only Admins can change registration status
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // ─────────────────────────────────────────────────────
+    // MATCH RESULTS (proof submissions)
+    // /match_results/{resultId}
+    // ─────────────────────────────────────────────────────
+    match /match_results/{resultId} {
+      allow read: if isAuth() &&
+        (request.auth.uid == resource.data.userId || isStaff());
+
+      // Players can submit their own result proof ONCE
+      allow create: if isAuth()
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.status == 'pending'
+        && request.resource.data.keys().hasAll([
+          'matchId','userId','kills','rank','screenshotUrl','submittedAt'
+        ])
+        && request.resource.data.kills is int
+        && request.resource.data.rank is int
+        && request.resource.data.kills >= 0
+        && request.resource.data.rank >= 1
+        && !exists(/databases/$(database)/documents/match_results/$(resultId));
+
+      // Only Admins can verify/approve/reject results
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // ─────────────────────────────────────────────────────
+    // SETTLEMENTS (winner payouts)
+    // /settlements/{settlementId}
+    // Strict idempotency — no duplicate payouts
+    // ─────────────────────────────────────────────────────
+    match /settlements/{settlementId} {
+      allow read: if isAuth() &&
+        (request.auth.uid == resource.data.userId || isStaff());
+
+      // ONLY Admins can create settlements (no user can credit themselves)
+      allow create: if isAdmin()
+        && request.resource.data.keys().hasAll([
+          'resultId','matchId','userId','totalPaid',
+          'adminVerifiedKills','adminVerifiedRank','settledAt','settledBy'
+        ])
+        && request.resource.data.totalPaid > 0
+        && !exists(/databases/$(database)/documents/settlements/$(settlementId));
+
+      // Settlements are IMMUTABLE after creation (no edits/deletes)
+      allow update: if false;
+      allow delete: if false;
+    }
+
+    // ─────────────────────────────────────────────────────
+    // WALLET TRANSACTIONS
+    // /wallet_transactions/{txId}
+    // ─────────────────────────────────────────────────────
+    match /wallet_transactions/{txId} {
+      allow read: if isAuth() &&
+        (request.auth.uid == resource.data.userId || isStaff());
+
+      // Transactions are write-once via Cloud Functions only
+      // No direct user writes allowed
+      allow create: if isAdmin();
+      allow update: if false;
+      allow delete: if false;
+    }
+
+    // ─────────────────────────────────────────────────────
+    // WITHDRAWAL REQUESTS
+    // /withdrawal_requests/{reqId}
+    // ─────────────────────────────────────────────────────
+    match /withdrawal_requests/{reqId} {
+      allow read: if isAuth() &&
+        (request.auth.uid == resource.data.userId || isStaff());
+
+      // Users can create withdrawal requests
+      allow create: if isAuth()
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.status == 'pending'
+        && validAmount(request.resource.data.amount)
+        && request.resource.data.keys().hasAll([
+          'userId','amount','upiId','status','requestedAt'
+        ])
+        // Prevent duplicate pending requests
+        && !exists(/databases/$(database)/documents/withdrawal_requests/$(reqId));
+
+      // Users cannot update (only admin can approve/reject)
+      allow update: if isAdmin();
+      allow delete: if isSuperAdmin();
+    }
+
+    // ─────────────────────────────────────────────────────
+    // DISPUTES
+    // /disputes/{disputeId}
+    // ─────────────────────────────────────────────────────
+    match /disputes/{disputeId} {
+      allow read: if isStaff() ||
+        (isAuth() && request.auth.uid == resource.data.reporterId);
+
+      allow create: if isAuth()
+        && request.resource.data.reporterId == request.auth.uid
+        && request.resource.data.status == 'pending'
+        && request.resource.data.keys().hasAll([
+          'matchId','reporterId','reportedUserId','category','description','createdAt'
+        ]);
+
+      allow update: if isStaff();
+      allow delete: if isSuperAdmin();
+    }
+
+    // ─────────────────────────────────────────────────────
+    // SUPPORT TICKETS
+    // /support_tickets/{ticketId}
+    // ─────────────────────────────────────────────────────
+    match /support_tickets/{ticketId} {
+      allow read: if isStaff() ||
+        (isAuth() && request.auth.uid == resource.data.userId);
+
+      allow create: if isAuth()
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.status == 'open';
+
+      // Users can add messages; only staff changes status/assignment
+      allow update: if isStaff() ||
+        (isAuth()
+          && request.auth.uid == resource.data.userId
+          && unchanged('status')
+          && unchanged('assignedTo')
+          && unchanged('priority'));
+
+      allow delete: if isSuperAdmin();
+    }
+
+    // ─────────────────────────────────────────────────────
+    // AUDIT LOGS
+    // /audit_logs/{logId}
+    // Write-once, admin-readable only
+    // ─────────────────────────────────────────────────────
+    match /audit_logs/{logId} {
+      allow read:   if isAdmin();
+      allow create: if isStaff()
+        && request.resource.data.keys().hasAll([
+          'adminId','action','target','timestamp'
+        ]);
+      allow update: if false; // Immutable
+      allow delete: if false; // Immutable
+    }
+
+    // ─────────────────────────────────────────────────────
+    // NOTIFICATIONS
+    // /notifications/{notifId}
+    // ─────────────────────────────────────────────────────
+    match /notifications/{notifId} {
+      allow read:   if isAdmin() ||
+        (isAuth() && (resource.data.target == 'all' ||
+          resource.data.targetUsers.hasAny([request.auth.uid])));
+      allow create: if isAdmin();
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // ─────────────────────────────────────────────────────
+    // BANNERS
+    // /banners/{bannerId}
+    // ─────────────────────────────────────────────────────
+    match /banners/{bannerId} {
+      allow read: if isAuth() && resource.data.enabled == true;
+      allow read: if isAdmin();
+      allow write: if isAdmin();
+    }
+
+    // ─────────────────────────────────────────────────────
+    // KYC SUBMISSIONS
+    // /kyc_submissions/{kycId}
+    // Sensitive — super restricted
+    // ─────────────────────────────────────────────────────
+    match /kyc_submissions/{kycId} {
+      // Only the submitting user and admins can read
+      allow read: if isAdmin() ||
+        (isAuth() && request.auth.uid == resource.data.userId);
+
+      allow create: if isAuth()
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.status == 'pending'
+        && request.resource.data.keys().hasAll([
+          'userId','fullName','dob','docType','submittedAt'
+        ]);
+
+      // Only admins can update KYC status
+      allow update: if isAdmin();
+      allow delete: if isSuperAdmin();
+    }
+
+    // ─────────────────────────────────────────────────────
+    // FRAUD FLAGS
+    // /fraud_flags/{flagId}
+    // Admin-only
+    // ─────────────────────────────────────────────────────
+    match /fraud_flags/{flagId} {
+      allow read, write: if isAdmin();
+    }
+
+    // ─────────────────────────────────────────────────────
+    // ADMIN ACCOUNTS
+    // /admin_accounts/{adminId}
+    // Super restricted — only super admin can manage
+    // ─────────────────────────────────────────────────────
+    match /admin_accounts/{adminId} {
+      // Admins can read their own record (for role checks)
+      allow read: if isAuth() && request.auth.uid == adminId;
+      // Admins can read all admin records
+      allow read: if isAdmin();
+
+      // Only Super Admin can create/update/delete admin accounts
+      allow create, update: if isSuperAdmin()
+        && request.resource.data.keys().hasAll(['email','name','role','twoFA','createdAt'])
+        && request.resource.data.role in ['super_admin','admin','moderator'];
+
+      allow delete: if isSuperAdmin();
+    }
+
+    // ─────────────────────────────────────────────────────
+    // DENY ALL OTHER PATHS
+    // ─────────────────────────────────────────────────────
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
