@@ -181,6 +181,10 @@
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
         <span>Analytics</span>
       </a>
+      <a class="nav-item" data-section="games">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M12 12h.01"/><path d="M7 12h.01"/><path d="M17 12h.01"/><path d="M12 9v6"/></svg>
+        <span>Games</span>
+      </a>
       <a class="nav-item" data-section="results">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg>
         <span>Results</span>
@@ -784,6 +788,54 @@
 
       </section>
 
+      <!-- ═══════════ GAMES ═══════════ -->
+      <section id="section-games" class="cs">
+        <div class="section-toolbar">
+          <div class="st-left">
+            <div class="st-search">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input type="text" id="gameSearch" placeholder="Search games...">
+            </div>
+            <select class="st-filter" id="gameStatusFilter">
+              <option value="all">All Status</option>
+              <option value="LIVE">🟢 Live</option>
+              <option value="COMING_SOON">🔴 Coming Soon</option>
+            </select>
+          </div>
+          <div class="st-right">
+            <button class="btn-primary-sm" id="addGameBtn">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Add Game
+            </button>
+          </div>
+        </div>
+        <div class="table-card full">
+          <div class="tc-header">
+            <h3>Game Library</h3>
+            <span class="badge badge-active" id="gameCountBadge">0 games</span>
+          </div>
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Order</th>
+                <th>Logo</th>
+                <th>Name</th>
+                <th>Slug</th>
+                <th>Status</th>
+                <th>Badge</th>
+                <th>Enabled</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="gamesTableBody"></tbody>
+          </table>
+          <div class="table-empty hidden" id="noGames">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M12 12h.01"/><path d="M7 12h.01"/><path d="M17 12h.01"/><path d="M12 9v6"/></svg>
+            <p>No games yet — click "Add Game" to create your first game</p>
+          </div>
+        </div>
+      </section>
+
       <!-- ═══════════ RESULTS ═══════════ -->
       <section id="section-results" class="cs">
         <div class="feat-tabs">
@@ -1252,5 +1304,260 @@
 </div>
 
 <script src="admin.js"></script>
+
+<!-- Game CMS — localStorage based (no Firebase needed yet) -->
+<script>
+/* ── Inline Game CMS — works with localStorage, no Firebase ── */
+(function() {
+  var GAMES_KEY = 'playta_games';
+
+  function getGames() {
+    try { return JSON.parse(localStorage.getItem(GAMES_KEY)) || []; } catch(e) { return []; }
+  }
+  function saveGames(g) { localStorage.setItem(GAMES_KEY, JSON.stringify(g)); }
+  function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  function showToast(msg, type) {
+    var t=document.getElementById('adminToast'); if(!t)return;
+    t.textContent=msg; t.className='admin-toast toast-'+(type||'success'); t.classList.remove('hidden');
+    setTimeout(function(){t.classList.add('hidden');},3000);
+  }
+
+  /* ── Render Games Table ── */
+  function renderGames() {
+    var games  = getGames();
+    var search = (document.getElementById('gameSearch')||{}).value||'';
+    var status = (document.getElementById('gameStatusFilter')||{}).value||'all';
+    var badge  = document.getElementById('gameCountBadge');
+    var tbody  = document.getElementById('gamesTableBody');
+    var noEl   = document.getElementById('noGames');
+    if(!tbody) return;
+    if(badge) badge.textContent = games.length + ' game' + (games.length!==1?'s':'');
+
+    var filtered = games.filter(function(g) {
+      var mQ = !search || g.name.toLowerCase().includes(search.toLowerCase());
+      var mS = status==='all' || g.status===status;
+      return mQ && mS;
+    });
+
+    if(!filtered.length) { tbody.innerHTML=''; if(noEl)noEl.classList.remove('hidden'); return; }
+    if(noEl) noEl.classList.add('hidden');
+
+    tbody.innerHTML = filtered.map(function(g,i) {
+      return '<tr>'+
+        '<td><div style="display:flex;gap:4px;align-items:center">'+
+          '<button class="action-btn" onclick="gameUp(\''+g.id+'\')">↑</button>'+
+          '<button class="action-btn" onclick="gameDown(\''+g.id+'\')">↓</button>'+
+          '<span style="color:var(--t1);font-size:12px">#'+(g.order||i+1)+'</span>'+
+        '</div></td>'+
+        '<td>'+
+          (g.logoUrl
+            ? '<img src="'+esc(g.logoUrl)+'" style="width:36px;height:36px;border-radius:8px;object-fit:cover">'
+            : '<div style="width:36px;height:36px;border-radius:8px;background:var(--card2);display:flex;align-items:center;justify-content:center;font-size:18px">🎮</div>'
+          )+
+        '</td>'+
+        '<td><p style="font-weight:600">'+esc(g.name)+'</p><p style="font-size:11px;color:var(--t1)">'+esc(g.description||'')+'</p></td>'+
+        '<td style="color:var(--t1);font-size:12px;font-family:monospace">'+esc(g.slug||'')+'</td>'+
+        '<td><span class="badge badge-'+(g.status==='LIVE'?'active':'banned')+'">'+(g.status==='LIVE'?'🟢 LIVE':'🔴 COMING SOON')+'</span></td>'+
+        '<td>'+(g.badgeText?'<span style="background:'+(g.badgeColor||'#FF4C4C')+';color:#fff;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:700">'+esc(g.badgeText)+'</span>':'<span style="color:var(--t2)">—</span>')+'</td>'+
+        '<td><label class="toggle-switch"><input type="checkbox" onchange="toggleGame(\''+g.id+'\')" '+(g.enabled?'checked':'')+'>'+
+          '<span class="toggle-slider"></span></label></td>'+
+        '<td><div class="action-btns">'+
+          '<button class="action-btn" onclick="editGame(\''+g.id+'\')" title="Edit">'+
+            '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4z"/></svg>'+
+          '</button>'+
+          '<button class="action-btn danger" onclick="deleteGame(\''+g.id+'\')" title="Delete">'+
+            '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg>'+
+          '</button>'+
+        '</div></td>'+
+      '</tr>';
+    }).join('');
+  }
+
+  /* ── Game Modal ── */
+  function openGameModal(game) {
+    var existing = document.getElementById('gameModalOverlay');
+    if(existing) existing.remove();
+
+    var d = document.createElement('div');
+    d.id = 'gameModalOverlay';
+    d.className = 'modal-overlay';
+    d.innerHTML = `
+      <div class="modal-card" style="max-width:520px">
+        <div class="modal-header">
+          <h3>${game ? '✏️ Edit Game' : '🎮 Add New Game'}</h3>
+          <button class="modal-close" onclick="document.getElementById('gameModalOverlay').remove()">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="mf-row">
+            <div class="mf-group">
+              <label>Game Name *</label>
+              <input type="text" class="mf-input" id="gmName" placeholder="e.g. Free Fire Max" value="${game?game.name:''}">
+            </div>
+            <div class="mf-group">
+              <label>Status</label>
+              <select class="mf-input" id="gmStatus">
+                <option value="LIVE" ${game&&game.status==='LIVE'?'selected':''}>🟢 LIVE</option>
+                <option value="COMING_SOON" ${game&&game.status==='COMING_SOON'?'selected':''}>🔴 Coming Soon</option>
+              </select>
+            </div>
+          </div>
+          <div class="mf-group full">
+            <label>Description</label>
+            <input type="text" class="mf-input" id="gmDesc" placeholder="Short description" value="${game?game.description||'':''}">
+          </div>
+          <div class="mf-row">
+            <div class="mf-group">
+              <label>Logo URL <span style="color:var(--t1);font-size:11px">(paste image URL)</span></label>
+              <input type="url" class="mf-input" id="gmLogoUrl" placeholder="https://..." value="${game?game.logoUrl||'':''}">
+            </div>
+            <div class="mf-group">
+              <label>Display Order</label>
+              <input type="number" class="mf-input" id="gmOrder" min="1" value="${game?game.order||99:99}">
+            </div>
+          </div>
+          <div class="mf-row">
+            <div class="mf-group">
+              <label>Badge Text <span style="color:var(--t1);font-size:11px">(optional)</span></label>
+              <input type="text" class="mf-input" id="gmBadge" placeholder="e.g. MAX, NEW" value="${game?game.badgeText||'':''}">
+            </div>
+            <div class="mf-group">
+              <label>Badge Color</label>
+              <input type="color" class="mf-input" id="gmBadgeColor" value="${game?game.badgeColor||'#FF4C4C':'#FF4C4C'}" style="height:42px;cursor:pointer">
+            </div>
+          </div>
+          <div class="mf-group full">
+            <label>Enabled</label>
+            <label class="toggle-switch" style="margin-top:8px;display:block">
+              <input type="checkbox" id="gmEnabled" ${(!game||game.enabled!==false)?'checked':''}>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <div id="gameFormErr" class="login-error hidden"></div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-cancel" onclick="document.getElementById('gameModalOverlay').remove()">Cancel</button>
+          <button class="btn-primary-sm" id="saveGameBtn">${game?'Save Changes':'Create Game'}</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(d);
+
+    document.getElementById('gmName').addEventListener('input', function() {
+      /* No Firestore here — just local */
+    });
+
+    document.getElementById('saveGameBtn').addEventListener('click', function() {
+      var name    = (document.getElementById('gmName')||{}).value.trim();
+      var status  = (document.getElementById('gmStatus')||{}).value;
+      var desc    = (document.getElementById('gmDesc')||{}).value.trim();
+      var logoUrl = (document.getElementById('gmLogoUrl')||{}).value.trim();
+      var order   = parseInt((document.getElementById('gmOrder')||{}).value)||99;
+      var badge   = (document.getElementById('gmBadge')||{}).value.trim();
+      var color   = (document.getElementById('gmBadgeColor')||{}).value;
+      var enabled = (document.getElementById('gmEnabled')||{}).checked;
+      var errEl   = document.getElementById('gameFormErr');
+
+      if(!name) { if(errEl){errEl.textContent='Game name is required';errEl.classList.remove('hidden');} return; }
+
+      var slug = name.toLowerCase().replace(/[^a-z0-9\s-]/g,'').replace(/\s+/g,'-');
+      var games = getGames();
+
+      if(game) {
+        var idx = games.findIndex(function(g){return g.id===game.id;});
+        if(idx>=0) {
+          games[idx] = Object.assign(games[idx], {name,status,description:desc,logoUrl:logoUrl||null,order,badgeText:badge||null,badgeColor:badge?color:null,enabled,slug});
+        }
+        showToast('✅ "'+name+'" updated','success');
+      } else {
+        games.push({id:'GAME-'+Date.now(),name,status,description:desc,logoUrl:logoUrl||null,order,badgeText:badge||null,badgeColor:badge?color:null,enabled,slug,createdAt:Date.now()});
+        showToast('✅ "'+name+'" created','success');
+      }
+
+      saveGames(games);
+      document.getElementById('gameModalOverlay').remove();
+      renderGames();
+    });
+  }
+
+  /* ── Global functions ── */
+  window.editGame = function(id) {
+    var g = getGames().find(function(x){return x.id===id;});
+    if(g) openGameModal(g);
+  };
+
+  window.deleteGame = function(id) {
+    var g = getGames().find(function(x){return x.id===id;});
+    if(!g||!confirm('Delete "'+g.name+'"? This cannot be undone.')) return;
+    saveGames(getGames().filter(function(x){return x.id!==id;}));
+    renderGames();
+    showToast('Game deleted','error');
+  };
+
+  window.toggleGame = function(id) {
+    var games = getGames();
+    var idx   = games.findIndex(function(x){return x.id===id;});
+    if(idx>=0) {
+      games[idx].enabled = !games[idx].enabled;
+      saveGames(games);
+      showToast('Game '+(games[idx].enabled?'enabled':'disabled'),'success');
+    }
+  };
+
+  window.gameUp = function(id) {
+    var games  = getGames().sort(function(a,b){return(a.order||0)-(b.order||0);});
+    var idx    = games.findIndex(function(x){return x.id===id;});
+    if(idx<=0) return;
+    var tmp    = games[idx].order; games[idx].order=games[idx-1].order; games[idx-1].order=tmp;
+    saveGames(games); renderGames();
+  };
+
+  window.gameDown = function(id) {
+    var games  = getGames().sort(function(a,b){return(a.order||0)-(b.order||0);});
+    var idx    = games.findIndex(function(x){return x.id===id;});
+    if(idx<0||idx>=games.length-1) return;
+    var tmp    = games[idx].order; games[idx].order=games[idx+1].order; games[idx+1].order=tmp;
+    saveGames(games); renderGames();
+  };
+
+  /* Seed default games if empty */
+  if(!getGames().length) {
+    saveGames([
+      {id:'GAME-FF', name:'Free Fire Max', slug:'free-fire-max', status:'LIVE', description:'Battle Royale', logoUrl:'../images/ff-icon.png', order:1, enabled:true, createdAt:Date.now()},
+      {id:'GAME-BG', name:'BGMI',          slug:'bgmi',          status:'LIVE', description:'Battle Royale', logoUrl:'../images/bgmi-icon.png',order:2, enabled:true, createdAt:Date.now()},
+      {id:'GAME-CD', name:'COD Mobile',    slug:'cod-mobile',    status:'COMING_SOON', description:'FPS',   logoUrl:'../images/cod-icon.png',  order:3, enabled:false,createdAt:Date.now()},
+      {id:'GAME-VL', name:'Valorant',      slug:'valorant',      status:'COMING_SOON', description:'FPS',   logoUrl:'../images/val-icon.png',  order:4, enabled:false,createdAt:Date.now()}
+    ]);
+  }
+
+  /* Wire add button + search */
+  document.addEventListener('click', function(e) {
+    if(e.target.closest('#addGameBtn')) { openGameModal(null); }
+  });
+  document.addEventListener('input', function(e) {
+    if(e.target.id==='gameSearch') renderGames();
+  });
+  document.addEventListener('change', function(e) {
+    if(e.target.id==='gameStatusFilter') renderGames();
+  });
+
+  /* Hook into admin showSection */
+  var origShow = window.showSection || function(){};
+  document.addEventListener('click', function(e) {
+    var nav = e.target.closest('.nav-item[data-section="games"]');
+    if(nav) { setTimeout(renderGames, 50); }
+  });
+
+  /* Initial render when section becomes active */
+  var observer = new MutationObserver(function() {
+    var s = document.getElementById('section-games');
+    if(s && s.classList.contains('active')) renderGames();
+  });
+  var contentBody = document.querySelector('.content-body');
+  if(contentBody) observer.observe(contentBody, {subtree:true, attributes:true, attributeFilter:['class']});
+
+}());
+</script>
 </body>
 </html>
