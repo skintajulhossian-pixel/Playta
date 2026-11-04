@@ -814,6 +814,7 @@
             <h3>Game Library</h3>
             <span class="badge badge-active" id="gameCountBadge">0 games</span>
           </div>
+          <div style="overflow-x:auto">
           <table class="admin-table">
             <thead>
               <tr>
@@ -829,6 +830,7 @@
             </thead>
             <tbody id="gamesTableBody"></tbody>
           </table>
+          </div>
           <div class="table-empty hidden" id="noGames">
             <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M12 12h.01"/><path d="M7 12h.01"/><path d="M17 12h.01"/><path d="M12 9v6"/></svg>
             <p>No games yet — click "Add Game" to create your first game</p>
@@ -1521,14 +1523,31 @@
     saveGames(games); renderGames();
   };
 
-  /* Seed default games if empty */
+  /* Seed default games if empty.
+     These mirror the tiles that already exist on the home page:
+     Free Fire Max is live, the other three are "Coming Soon" (but still shown). */
+  var SEED_VERSION = '2';
   if(!getGames().length) {
     saveGames([
-      {id:'GAME-FF', name:'Free Fire Max', slug:'free-fire-max', status:'LIVE', description:'Battle Royale', logoUrl:'../images/ff-icon.png', order:1, enabled:true, createdAt:Date.now()},
-      {id:'GAME-BG', name:'BGMI',          slug:'bgmi',          status:'LIVE', description:'Battle Royale', logoUrl:'../images/bgmi-icon.png',order:2, enabled:true, createdAt:Date.now()},
-      {id:'GAME-CD', name:'COD Mobile',    slug:'cod-mobile',    status:'COMING_SOON', description:'FPS',   logoUrl:'../images/cod-icon.png',  order:3, enabled:false,createdAt:Date.now()},
-      {id:'GAME-VL', name:'Valorant',      slug:'valorant',      status:'COMING_SOON', description:'FPS',   logoUrl:'../images/val-icon.png',  order:4, enabled:false,createdAt:Date.now()}
+      {id:'GAME-FF', name:'Free Fire Max', slug:'free-fire-max', status:'LIVE',        description:'Battle Royale', logoUrl:'../images/ff-icon.png',   order:1, enabled:true, createdAt:Date.now()},
+      {id:'GAME-BG', name:'BGMI',          slug:'bgmi',          status:'COMING_SOON', description:'Battle Royale', logoUrl:'../images/bgmi-icon.png', order:2, enabled:true, createdAt:Date.now()},
+      {id:'GAME-CD', name:'COD Mobile',    slug:'cod-mobile',    status:'COMING_SOON', description:'FPS',           logoUrl:'../images/cod-icon.png',  order:3, enabled:true, createdAt:Date.now()},
+      {id:'GAME-VL', name:'Valorant',      slug:'valorant',      status:'COMING_SOON', description:'FPS',           logoUrl:'../images/val-icon.png',  order:4, enabled:true, createdAt:Date.now()}
     ]);
+    localStorage.setItem('playta_games_seed', SEED_VERSION);
+  } else if(localStorage.getItem('playta_games_seed') !== SEED_VERSION) {
+    /* One-time repair of the first (wrong) defaults: BGMI was LIVE and
+       COD / Valorant were disabled. Only values that still match those
+       old defaults are changed - anything you edited yourself is kept. */
+    (function() {
+      var list = getGames(), changed = false;
+      list.forEach(function(g) {
+        if(g.id === 'GAME-BG' && g.status === 'LIVE') { g.status = 'COMING_SOON'; changed = true; }
+        if((g.id === 'GAME-CD' || g.id === 'GAME-VL') && g.enabled === false) { g.enabled = true; changed = true; }
+      });
+      if(changed) saveGames(list);
+      localStorage.setItem('playta_games_seed', SEED_VERSION);
+    }());
   }
 
   /* Wire add button + search */
