@@ -10,6 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
   loadUserSession();        /* ← Load session data into profile UI */
   initSplashScreen();
   initHeroCarousel();
+  applyAdminGames();        /* ← Build game tiles from Admin Panel → Games (falls back to static tiles) */
   initGameSwitcher();
   initBottomNav();
   initHeaderActions();
@@ -95,6 +96,113 @@ function initSplashScreen() {
    Locked games show a "Coming Soon" toast
    instead of loading empty content.
 ─────────────────────────────── */
+/* ───────────────────────────────
+   ADMIN-MANAGED GAME TILES
+   The Admin Panel -> Games section saves its list in localStorage
+   ('playta_games'). When that list exists, the home-page game grid is
+   rebuilt from it using the same tile markup as index.html. If the list
+   is missing or unreadable, the static tiles in index.html stay exactly
+   as they are.
+
+   Tile states
+     LIVE         -> class "active" (full colour, opens tournaments)
+     COMING_SOON  -> no "active"    (dimmed, red ribbon)
+     disabled     -> not shown at all
+─────────────────────────────── */
+const GAMES_STORAGE_KEY = 'playta_games';
+
+/* Existing tournaments carry no gameId yet - all of them are Free Fire
+   Max. Only these admin game IDs open the tournament list; any other
+   LIVE game shows a "not open yet" toast instead of wrongly listing
+   Free Fire matches. */
+const GAMES_WITH_TOURNAMENTS = ['GAME-FF'];
+
+const GAME_ICON_FALLBACK = 'data:image/svg+xml,' + encodeURIComponent(
+  "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='#8B949E' " +
+  "stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'>" +
+  "<rect x='2' y='6' width='20' height='12' rx='3'/><path d='M7 12h4M9 10v4'/>" +
+  "<circle cx='15.5' cy='11' r='0.7'/><circle cx='17.5' cy='13' r='0.7'/></svg>"
+);
+
+/* The admin page lives in /admin/, so it stores logo paths like
+   "../images/ff-icon.png". On the home page (site root) that must
+   become "images/ff-icon.png". Only http(s) and data:image URLs are
+   allowed through; any other scheme (javascript:, file:) is blocked. */
+function resolveGameLogo(url) {
+  if (!url || typeof url !== 'string') return GAME_ICON_FALLBACK;
+  const u = url.trim();
+  if (!u) return GAME_ICON_FALLBACK;
+  if (/^(https?:)?\/\//i.test(u) || /^data:image\//i.test(u)) return u;
+  if (/^[a-z][a-z0-9+.-]*:/i.test(u)) return GAME_ICON_FALLBACK;
+  return u.replace(/^(\.\.\/)+/, '').replace(/^\.\//, '');
+}
+
+/* Returns the admin's game list, or null when there is nothing usable
+   (missing key, broken JSON, not an array) so the caller keeps the
+   static tiles. */
+function readAdminGames() {
+  try {
+    const raw = localStorage.getItem(GAMES_STORAGE_KEY);
+    if (!raw) return null;
+    const list = JSON.parse(raw);
+    if (!Array.isArray(list)) return null;
+    return list.filter((g) => g && typeof g === 'object' && typeof g.name === 'string' && g.name.trim());
+  } catch (e) {
+    return null;
+  }
+}
+
+/* Same markup as the static tiles in index.html, built with DOM calls
+   (textContent) so a game name can never inject HTML. */
+function buildGameTile(game) {
+  const isLive = game.status === 'LIVE';
+  const customBadge = typeof game.badgeText === 'string' ? game.badgeText.trim() : '';
+  const badge = customBadge || (isLive ? '' : 'SOON');
+
+  const tile = document.createElement('button');
+  tile.className = 'game-tile' + (isLive ? ' active' : '');
+  tile.dataset.game = String(game.slug || game.id || game.name).replace(/[^a-z0-9_-]/gi, '').toLowerCase();
+  if (game.id) tile.dataset.gameId = String(game.id);
+  tile.dataset.hasTournaments = GAMES_WITH_TOURNAMENTS.includes(game.id) ? 'true' : 'false';
+
+  if (badge) {
+    const ribbon = document.createElement('span');
+    ribbon.className = 'soon-ribbon';
+    ribbon.textContent = badge;
+    if (customBadge && /^#[0-9a-f]{6}$/i.test(game.badgeColor || '')) {
+      ribbon.style.background = game.badgeColor;
+    }
+    tile.appendChild(ribbon);
+  }
+
+  const img = document.createElement('img');
+  img.className = 'game-tile-icon';
+  img.alt = game.name;
+  img.src = resolveGameLogo(game.logoUrl);
+  img.addEventListener('error', () => { img.src = GAME_ICON_FALLBACK; }, { once: true });
+  tile.appendChild(img);
+
+  const name = document.createElement('span');
+  name.className = 'game-tile-name';
+  name.textContent = game.name;
+  tile.appendChild(name);
+
+  return tile;
+}
+
+function applyAdminGames() {
+  const grid = document.querySelector('.game-grid');
+  const games = readAdminGames();
+  if (!grid || !games) return;   /* nothing from admin -> keep static tiles */
+
+  const visible = games
+    .filter((g) => g.enabled !== false)
+    .sort((a, b) => ((a.order || 0) - (b.order || 0)) || ((a.createdAt || 0) - (b.createdAt || 0)));
+
+  grid.textContent = '';
+  visible.forEach((g) => grid.appendChild(buildGameTile(g)));
+}
+
 function initGameSwitcher() {
   const tiles = document.querySelectorAll('.game-tile');
 
@@ -108,14 +216,22 @@ function initGameSwitcher() {
   tiles.forEach((tile) => {
     tile.addEventListener('click', () => {
       const game = tile.dataset.game;
+      const nameEl = tile.querySelector('.game-tile-name');
+      const displayName = (nameEl && nameEl.textContent.trim()) || gameNames[game] || 'This game';
 
+      /* "active" means the game is launched (full colour). It is NOT a
+         "currently selected" marker, so it is never moved between tiles -
+         that would dim other live games once the admin has more than one. */
       if (!tile.classList.contains('active')) {
-        showToast(`Coming Soon! We are launching ${gameNames[game]} tournaments very soon. Stay tuned!`);
+        showToast(`Coming Soon! We are launching ${displayName} tournaments very soon. Stay tuned!`);
         return;
       }
 
-      tiles.forEach((t) => t.classList.remove('active'));
-      tile.classList.add('active');
+      /* Launched game added from the admin that has no tournaments yet */
+      if (tile.dataset.hasTournaments === 'false') {
+        showToast(`${displayName} tournaments are not open yet. Stay tuned!`);
+        return;
+      }
 
       openTournamentListView();
     });
@@ -1492,7 +1608,7 @@ function renderRoomBox(m) {
     return `
       <div class="mm-room-box state-unjoined" data-match-id="${m.matchId}" data-starts-at="${m.startsAt}" data-joined="false">
         <div class="mm-room-locked">
-          <span class="mm-room-lock-icon">🔒</span>
+          <span class="mm-room-lock-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
           <span class="mm-room-locked-text">Join the match to unlock Room ID &amp; Password.</span>
         </div>
       </div>`;
@@ -1501,7 +1617,7 @@ function renderRoomBox(m) {
   return `
     <div class="mm-room-box state-joined" id="room-${roomKey}" data-match-id="${m.matchId}" data-starts-at="${m.startsAt}" data-joined="true">
       <div class="mm-room-locked">
-        <span class="mm-room-lock-icon">🔒</span>
+        <span class="mm-room-lock-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
         <span class="mm-room-locked-text">You are registered! Room details will be revealed exactly 1 minute before the match.</span>
       </div>
       <div class="mm-room-unlocked">
